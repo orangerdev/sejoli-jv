@@ -125,6 +125,7 @@ class Sejoli_JV {
 		 * The class responsible for defining all actions that occur in the admin area.
 		 */
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-sejoli-jv-admin.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-sejoli-jv-user.php';
 
 		/**
 		 * The class responsible for defining all actions that occur in the public-facing
@@ -162,7 +163,12 @@ class Sejoli_JV {
 	 */
 	private function define_admin_hooks() {
 
-		$plugin_admin = new Sejoli_JV\Admin( $this->get_plugin_name(), $this->get_version() );
+		$admin = new Sejoli_JV\Admin( $this->get_plugin_name(), $this->get_version() );
+
+		$user = new Sejoli_JV\Admin\User( $this->get_plugin_name(), $this->get_version() );
+
+		$this->loader->add_action( 'init',					$user, 'register_role', 		10);
+		$this->loader->add_action( 'sejoli/user/fields',	$user, 'setup_user_fields',		300);
 
 	}
 
