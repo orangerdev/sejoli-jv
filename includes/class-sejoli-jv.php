@@ -125,6 +125,7 @@ class Sejoli_JV {
 		 * The class responsible for defining all actions that occur in the admin area.
 		 */
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-sejoli-jv-admin.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-sejoli-jv-product.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-sejoli-jv-user.php';
 
 		/**
@@ -165,10 +166,16 @@ class Sejoli_JV {
 
 		$admin = new Sejoli_JV\Admin( $this->get_plugin_name(), $this->get_version() );
 
+		$product = new Sejoli_JV\Admin\Product( $this->get_plugin_name(), $this->get_version() );
+
+		$this->loader->add_filter( 'sejoli/product/fields', 			$product, 'setup_product_fields', 	25);
+		$this->loader->add_action( 'pre_post_update',					$product, 'clear_jv_data_in_user',	10, 2);
+		$this->loader->add_action( 'save_post',							$product, 'set_jv_data_to_user',	10, 3);
+
 		$user = new Sejoli_JV\Admin\User( $this->get_plugin_name(), $this->get_version() );
 
 		$this->loader->add_action( 'init',					$user, 'register_role', 		10);
-		$this->loader->add_action( 'sejoli/user/fields',	$user, 'setup_user_fields',		300);
+		$this->loader->add_filter( 'sejoli/user/fields',	$user, 'setup_user_fields',		300);
 
 	}
 
