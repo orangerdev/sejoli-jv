@@ -22,7 +22,7 @@
  * @link       https://sejoli.co.id
  * @since      1.0.0
  *
- * @package    Sejoli_Jv
+ * @package    Sejoli_JV
  */
 
 // If uninstall not called from WordPress, then exit.

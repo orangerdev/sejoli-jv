@@ -6,8 +6,8 @@
  * @link       https://sejoli.co.id
  * @since      1.0.0
  *
- * @package    Sejoli_Jv
- * @subpackage Sejoli_Jv/includes
+ * @package    Sejoli_JV
+ * @subpackage Sejoli_JV/includes
  */
 
 /**
@@ -16,11 +16,11 @@
  * This class defines all code necessary to run during the plugin's deactivation.
  *
  * @since      1.0.0
- * @package    Sejoli_Jv
- * @subpackage Sejoli_Jv/includes
+ * @package    Sejoli_JV
+ * @subpackage Sejoli_JV/includes
  * @author     Sejoli <orangerdigiart@gmail.com>
  */
-class Sejoli_Jv_Deactivator {
+class Sejoli_JV_Deactivator {
 
 	/**
 	 * Short Description. (use period)

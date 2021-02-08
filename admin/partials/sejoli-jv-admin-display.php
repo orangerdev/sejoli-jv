@@ -8,8 +8,8 @@
  * @link       https://sejoli.co.id
  * @since      1.0.0
  *
- * @package    Sejoli_Jv
- * @subpackage Sejoli_Jv/admin/partials
+ * @package    Sejoli_JV
+ * @subpackage Sejoli_JV/admin/partials
  */
 ?>
 

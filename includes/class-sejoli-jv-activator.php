@@ -8,8 +8,8 @@ use Illuminate\Database\Capsule\Manager as Capsule;
  * @link       https://sejoli.co.id
  * @since      1.0.0
  *
- * @package    Sejoli_Jv
- * @subpackage Sejoli_Jv/includes
+ * @package    Sejoli_JV
+ * @subpackage Sejoli_JV/includes
  */
 
 /**
@@ -18,11 +18,11 @@ use Illuminate\Database\Capsule\Manager as Capsule;
  * This class defines all code necessary to run during the plugin's activation.
  *
  * @since      1.0.0
- * @package    Sejoli_Jv
- * @subpackage Sejoli_Jv/includes
+ * @package    Sejoli_JV
+ * @subpackage Sejoli_JV/includes
  * @author     Sejoli <orangerdigiart@gmail.com>
  */
-class Sejoli_Jv_Activator {
+class Sejoli_JV_Activator {
 
 	/**
 	 * Short Description. (use period)

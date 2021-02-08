@@ -10,7 +10,7 @@
  *
  * @link              https://sejoli.co.id
  * @since             1.0.0
- * @package           Sejoli_Jv
+ * @package           Sejoli_JV
  *
  * @wordpress-plugin
  * Plugin Name:       Sejoli - Joint Venture
@@ -64,7 +64,7 @@ function sejoli_jv_check_sejoli() {
  */
 function activate_sejoli_jv() {
 	require_once plugin_dir_path( __FILE__ ) . 'includes/class-sejoli-jv-activator.php';
-	Sejoli_Jv_Activator::activate();
+	Sejoli_JV_Activator::activate();
 }
 
 /**
@@ -73,7 +73,7 @@ function activate_sejoli_jv() {
  */
 function deactivate_sejoli_jv() {
 	require_once plugin_dir_path( __FILE__ ) . 'includes/class-sejoli-jv-deactivator.php';
-	Sejoli_Jv_Deactivator::deactivate();
+	Sejoli_JV_Deactivator::deactivate();
 }
 
 /**
@@ -93,7 +93,7 @@ require plugin_dir_path( __FILE__ ) . 'includes/class-sejoli-jv.php';
  */
 function run_sejoli_jv() {
 
-	$plugin = new Sejoli_Jv();
+	$plugin = new Sejoli_JV();
 	$plugin->run();
 
 }

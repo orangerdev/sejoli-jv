@@ -6,8 +6,8 @@
  * @link       https://sejoli.co.id
  * @since      1.0.0
  *
- * @package    Sejoli_Jv
- * @subpackage Sejoli_Jv/includes
+ * @package    Sejoli_JV
+ * @subpackage Sejoli_JV/includes
  */
 
 /**
@@ -17,11 +17,11 @@
  * the plugin, and register them with the WordPress API. Call the
  * run function to execute the list of actions and filters.
  *
- * @package    Sejoli_Jv
- * @subpackage Sejoli_Jv/includes
+ * @package    Sejoli_JV
+ * @subpackage Sejoli_JV/includes
  * @author     Sejoli <orangerdigiart@gmail.com>
  */
-class Sejoli_Jv_Loader {
+class Sejoli_JV_Loader {
 
 	/**
 	 * The array of actions registered with WordPress.

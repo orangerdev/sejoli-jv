@@ -9,8 +9,8 @@
  * @link       https://sejoli.co.id
  * @since      1.0.0
  *
- * @package    Sejoli_Jv
- * @subpackage Sejoli_Jv/includes
+ * @package    Sejoli_JV
+ * @subpackage Sejoli_JV/includes
  */
 
 /**
@@ -23,11 +23,11 @@
  * version of the plugin.
  *
  * @since      1.0.0
- * @package    Sejoli_Jv
- * @subpackage Sejoli_Jv/includes
+ * @package    Sejoli_JV
+ * @subpackage Sejoli_JV/includes
  * @author     Sejoli <orangerdigiart@gmail.com>
  */
-class Sejoli_Jv {
+class Sejoli_JV {
 
 	/**
 	 * The loader that's responsible for maintaining and registering all hooks that power
@@ -35,7 +35,7 @@ class Sejoli_Jv {
 	 *
 	 * @since    1.0.0
 	 * @access   protected
-	 * @var      Sejoli_Jv_Loader    $loader    Maintains and registers all hooks for the plugin.
+	 * @var      Sejoli_JV_Loader    $loader    Maintains and registers all hooks for the plugin.
 	 */
 	protected $loader;
 
@@ -86,10 +86,10 @@ class Sejoli_Jv {
 	 *
 	 * Include the following files that make up the plugin:
 	 *
-	 * - Sejoli_Jv_Loader. Orchestrates the hooks of the plugin.
-	 * - Sejoli_Jv_i18n. Defines internationalization functionality.
-	 * - Sejoli_Jv_Admin. Defines all hooks for the admin area.
-	 * - Sejoli_Jv_Public. Defines all hooks for the public side of the site.
+	 * - Sejoli_JV_Loader. Orchestrates the hooks of the plugin.
+	 * - Sejoli_JV_i18n. Defines internationalization functionality.
+	 * - Sejoli_JV_Admin. Defines all hooks for the admin area.
+	 * - Sejoli_JV_Public. Defines all hooks for the public side of the site.
 	 *
 	 * Create an instance of the loader which will be used to register the hooks
 	 * with WordPress.
@@ -132,14 +132,14 @@ class Sejoli_Jv {
 		 */
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/class-sejoli-jv-public.php';
 
-		$this->loader = new Sejoli_Jv_Loader();
+		$this->loader = new Sejoli_JV_Loader();
 
 	}
 
 	/**
 	 * Define the locale for this plugin for internationalization.
 	 *
-	 * Uses the Sejoli_Jv_i18n class in order to set the domain and to register the hook
+	 * Uses the Sejoli_JV_i18n class in order to set the domain and to register the hook
 	 * with WordPress.
 	 *
 	 * @since    1.0.0
@@ -147,7 +147,7 @@ class Sejoli_Jv {
 	 */
 	private function set_locale() {
 
-		$plugin_i18n = new Sejoli_Jv_i18n();
+		$plugin_i18n = new Sejoli_JV_i18n();
 
 		$this->loader->add_action( 'plugins_loaded', $plugin_i18n, 'load_plugin_textdomain' );
 
@@ -162,7 +162,7 @@ class Sejoli_Jv {
 	 */
 	private function define_admin_hooks() {
 
-		$plugin_admin = new Sejoli_Jv_Admin( $this->get_plugin_name(), $this->get_version() );
+		$plugin_admin = new Sejoli_JV\Admin( $this->get_plugin_name(), $this->get_version() );
 
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
@@ -178,7 +178,7 @@ class Sejoli_Jv {
 	 */
 	private function define_public_hooks() {
 
-		$plugin_public = new Sejoli_Jv_Public( $this->get_plugin_name(), $this->get_version() );
+		$plugin_public = new Sejoli_JV\Front( $this->get_plugin_name(), $this->get_version() );
 
 		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_styles' );
 		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_scripts' );
@@ -209,7 +209,7 @@ class Sejoli_Jv {
 	 * The reference to the class that orchestrates the hooks with the plugin.
 	 *
 	 * @since     1.0.0
-	 * @return    Sejoli_Jv_Loader    Orchestrates the hooks of the plugin.
+	 * @return    Sejoli_JV_Loader    Orchestrates the hooks of the plugin.
 	 */
 	public function get_loader() {
 		return $this->loader;
