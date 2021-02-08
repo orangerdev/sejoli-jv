@@ -164,9 +164,6 @@ class Sejoli_JV {
 
 		$plugin_admin = new Sejoli_JV\Admin( $this->get_plugin_name(), $this->get_version() );
 
-		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
-		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
-
 	}
 
 	/**
@@ -180,8 +177,6 @@ class Sejoli_JV {
 
 		$plugin_public = new Sejoli_JV\Front( $this->get_plugin_name(), $this->get_version() );
 
-		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_styles' );
-		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_scripts' );
 
 	}
 
