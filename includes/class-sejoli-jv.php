@@ -76,6 +76,7 @@ class Sejoli_JV {
 
 		$this->load_dependencies();
 		$this->set_locale();
+		$this->register_cli();
 		$this->define_admin_hooks();
 		$this->define_public_hooks();
 
@@ -115,11 +116,17 @@ class Sejoli_JV {
 		* The class responsible for defining all database model
 		*/
 	   require_once plugin_dir_path( dirname( __FILE__ ) ) . 'models/main.php';
+	   require_once plugin_dir_path( dirname( __FILE__ ) ) . 'models/jv.php';
 
 	   /*
 		* The class responsible for defining all JSON methods
 		*/
 	   require_once plugin_dir_path( dirname( __FILE__ ) ) . 'json/main.php';
+
+	   /*
+		* The functions
+		*/
+	   require_once plugin_dir_path( dirname( __FILE__ ) ) . 'functions/jv.php';
 
 		/**
 		 * The class responsible for defining all actions that occur in the admin area.
@@ -133,6 +140,13 @@ class Sejoli_JV {
 		 * side of the site.
 		 */
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/class-sejoli-jv-public.php';
+
+		/**
+		 * The class responsible for defining CLI command
+		 */
+		if ( class_exists( 'WP_CLI' ) ) :
+			require_once plugin_dir_path( dirname( __FILE__ ) ) . 'cli/jv.php';
+		endif;
 
 		$this->loader = new Sejoli_JV_Loader();
 
@@ -156,6 +170,22 @@ class Sejoli_JV {
 	}
 
 	/**
+	 * Register CLI command
+	 * @since 	1.0.0
+	 * @return 	void
+	 */
+	private function register_cli() {
+
+		if ( !class_exists( 'WP_CLI' ) ) :
+			return;
+		endif;
+
+		$wallet 	= new Sejoli_JV\CLI\JV();
+
+		WP_CLI::add_command('sejolisa jv', $wallet);
+	}
+
+	/**
 	 * Register all of the hooks related to the admin area functionality
 	 * of the plugin.
 	 *
@@ -165,6 +195,8 @@ class Sejoli_JV {
 	private function define_admin_hooks() {
 
 		$admin = new Sejoli_JV\Admin( $this->get_plugin_name(), $this->get_version() );
+
+		$this->loader->add_action( 'sejoli/order/new',			$admin, 'set_jv_earning', 2999);
 
 		$product = new Sejoli_JV\Admin\Product( $this->get_plugin_name(), $this->get_version() );
 

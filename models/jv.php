@@ -9,13 +9,12 @@ use Illuminate\Database\Capsule\Manager as Capsule;
  */
 Class JV extends \SejoliJV\Model
 {
-    static protected $ids         = [];
-    static protected $table       = 'sejolisa_jv';
-    static protected $value       = 0.0;
-    static protected $status      = 'pending';
-    static protected $type        = 'out';
-    static protected $paid_status = 0;
-    static protected $paid_time   = '0000-00-00 00:00:00';
+    static protected $ids            = [];
+    static protected $table          = 'sejolisa_jv';
+    static protected $value          = 0.0;
+    static protected $status         = 'pending';
+    static protected $type           = 'out';
+    static protected $expend_id = NULL;
 
     /**
      * Set jv value ID
@@ -67,6 +66,16 @@ Class JV extends \SejoliJV\Model
         return new static;
     }
 
+    /**
+     * Set expend id
+     * @since   1.5.4
+     * @var string
+     */
+    static public function set_expend($expend_id) {
+        self::$expend_id = absint( $expend_id );
+        return new static;
+    }
+
 
     /**
      * Reset properties
@@ -77,10 +86,12 @@ Class JV extends \SejoliJV\Model
 
         parent::reset();
 
-        self::$value  = 0.0;
-        self::$status = 'pending';
-        self::$ids    = NULL;
-        self::$type   = 'out';
+        self::$value     = 0.0;
+        self::$status    = 'pending';
+        self::$ids       = NULL;
+        self::$expend_id = NULL;
+        self::$type      = 'out';
+
 
         return new static;
     }
@@ -92,7 +103,25 @@ Class JV extends \SejoliJV\Model
      */
     static protected function validate() {
 
-        if(in_array(self::$action, ['create'])) :
+        if(in_array(self::$action, ['add-earning'])) :
+
+            if(0 === self::$order_id) :
+                self::set_valid(false);
+                self::set_message( __('Order tidak valid', 'sejoli'));
+            endif;
+
+        endif;
+
+        if(in_array(self::$action, array('add-expend'))) :
+
+            if(empty(self::$expend_id)) :
+                self::set_valid(false);
+                self::set_message( __('Expend ID tidak valid', 'sejoli'));
+            endif;
+
+        endif;
+
+        if(in_array(self::$action, ['add-earning', 'add-expend'])) :
 
             if(!is_a(self::$user, 'WP_User')) :
                 self::set_valid(false);
@@ -109,15 +138,6 @@ Class JV extends \SejoliJV\Model
                 self::set_message( __('Nilai tidak boleh 0', 'sejoli'));
             endif;
 
-            if( !in_array(self::$type, array('in', 'out') ) )  :
-                self::set_valid(false);
-                self::set_message( __('Tipe nilai tiak valid', 'sejoli'));
-            endif;
-
-        endif;
-
-        if(in_array(self::$action, ['create', 'update-status', 'update-paid-status'])) :
-
             if(!in_array(self::$status, ['pending', 'added', 'cancelled'])) :
                 self::set_valid(false);
                 self::set_message( sprintf(__('Status nilai %s tidak valid', 'sejoli'), self::$status));
@@ -125,40 +145,6 @@ Class JV extends \SejoliJV\Model
 
         endif;
 
-    }
-
-    /**
-     * Save jv value data to database
-     * @since   1.5.4
-     */
-    static function create() {
-
-        self::set_action('create');
-        self::validate();
-
-        if(false !== self::$valid) :
-            parent::$table = self::$table;
-
-            $jv_value = [
-                'created_at' => current_time('mysql'),
-                'updated_at' => '0000-00-00 00:00:00',
-                'deleted_at' => '0000-00-00 00:00:00',
-                'product_id' => self::$product->ID,
-                'user_id'    => self::$user->ID,
-                'type'       => self::$type,
-                'value'      => self::$value,
-                'status'     => self::$status,
-                'meta_data'  => serialize( self::$meta_data )
-            ];
-
-            $jv_value['ID'] = Capsule::table(self::table())
-                                 ->insertGetId($jv_value);
-
-            self::set_valid(true);
-            self::set_respond('jv_value',$jv_value);
-        endif;
-
-        return new static;
     }
 
     /**
@@ -296,6 +282,76 @@ Class JV extends \SejoliJV\Model
 
         self::set_respond('data' ,$data);
         self::set_respond('chart',self::$chart);
+
+        return new static;
+    }
+
+    /**
+     * Add JV earning
+     * @since   1.0.0
+     */
+    static public function add_earning() {
+
+        self::set_action('add-earning');
+        self::validate();
+
+        if(true === self::$valid) :
+
+            parent::$table = self::$table;
+
+            $earning = array(
+                'created_at' => current_time('mysql'),
+                'order_id'   => self::$order_id,
+                'product_id' => self::$product_id,
+                'user_id'    => self::$user_id,
+                'type'       => 'in',
+                'value'      => self::$value,
+                'status'     => self::$status,
+                'meta_data'  => serialize( self::$meta_data )
+            );
+
+            $earning['ID'] = Capsule::table(self::table())
+                                ->insertGetId($earning);
+
+            self::set_valid     (true);
+            self::set_respond   ('earning', $earning);
+
+        endif;
+
+        return new static;
+    }
+
+    /**
+     * Add JV expend
+     * @since   1.0.0
+     */
+    static public function add_expend() {
+
+        self::set_action('add-expend');
+        self::validate();
+
+        if(true === self::$valid) :
+
+            parent::$table = self::$table;
+
+            $expend = array(
+                'created_at' => current_time('mysql'),
+                'expend_id'  => self::$expend_id,
+                'product_id' => self::$product_id,
+                'user_id'    => self::$user_id,
+                'type'       => 'out',
+                'value'      => self::$value,
+                'status'     => self::$status,
+                'meta_data'  => serialize( self::$meta_data )
+            );
+
+            $expend['ID'] = Capsule::table(self::table())
+                                ->insertGetId($expend);
+
+            self::set_valid     (true);
+            self::set_respond   ('expend', $expend);
+
+        endif;
 
         return new static;
     }

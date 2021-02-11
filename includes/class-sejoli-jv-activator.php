@@ -45,6 +45,8 @@ class Sejoli_JV_Activator {
                 $table->datetime    ('created_at');
                 $table->datetime    ('updated_at')->default('0000-00-00 00:00:00');
                 $table->datetime    ('deleted_at')->default('0000-00-00 00:00:00');
+				$table->integer     ('order_id');
+				$table->integer 	('expend_id')->nullable();
                 $table->integer     ('product_id');
                 $table->integer     ('user_id'); // Means JV ID
                 $table->enum        ('type', array('in', 'out'));

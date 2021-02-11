@@ -56,4 +56,82 @@ class Admin {
 
 	}
 
+	/**
+	 * Get nett order ID. will be recalculated by commission and shipping cost
+	 * @since 	1.0.0
+	 * @param  	integer 	$order_id
+	 * @return 	float
+	 */
+	protected function get_nett_order($order, $order_total) {
+
+		// if has shipment data
+		if(
+			isset($order['meta_data']) &&
+			isset($order['meta_data']['need_shipment']) &&
+			true === boolval( $order['meta_data']['need_shipment'] ) &&
+			isset($order['meta_data']['need_shipment']['cost'])
+		) :
+
+			$order_total -= floatval($order['meta_data']['need_shipment']['cost']);
+
+		endif;
+
+		// check by total commission
+		$total_commission = sejolisa_get_total_commission_by_order( $order_id );
+
+		$order_total -= $total_commission;
+
+		return floatval($order_total);
+	}
+
+	/**
+	 * Set JV earning when an order created
+	 * Hooked via action sejoli/order/new, priority 2999
+	 * @since 	1.0.0
+	 * @param 	array $order_data
+	 */
+	public function set_jv_earning( array $order_data ) {
+
+		$order_data  = sejolisa_get_order( array('ID' => $order_data['id'] ));
+		$order       = $order_data['orders'];
+		$jv_setup    = sejoli_jv_get_product_setup( $order['product_id'] );
+		$order_total = floatval( $order['grand_total'] );
+
+		if( false === $jv_setup || 0 >= $order_total) :
+			return;
+		endif;
+
+		$nett_total  = $this->get_nett_order($order, $order_total);
+
+		foreach( $jv_setup as $setup ) :
+
+			$value = floatval( $setup['value_portion'] );
+
+			if( 'percentage' === $setup['value_type'] ) :
+				$value = floor( $nett_total * $value / 100 );
+			endif;
+
+			sejoli_jv_add_earning_data( array(
+				'order_id'   => $order_id,
+				'product_id' => $order['product_id'],
+				'user_id'    => $setup['user'],
+				'value'      => $value
+			) );
+
+			do_action(
+				'sejoli/log/write',
+				'jv-earning',
+				sprintf(
+					__('JV Earning from order %s for user ID %s, order total %s, nett total %s and earning for the user %s', 'sejoli-jv'),
+					$order_id,
+					$setup['user'],
+					$order_total,
+					$nett_total,
+					$value
+				)
+			);
+
+		endforeach;
+	}
+
 }
