@@ -140,6 +140,7 @@ class Sejoli_JV {
 		 * side of the site.
 		 */
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/class-sejoli-jv-public.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/class-sejoli-jv-member.php';
 
 		/**
 		 * The class responsible for defining CLI command
@@ -220,9 +221,15 @@ class Sejoli_JV {
 	 */
 	private function define_public_hooks() {
 
-		$plugin_public = new Sejoli_JV\Front( $this->get_plugin_name(), $this->get_version() );
+		$front = new Sejoli_JV\Front( $this->get_plugin_name(), $this->get_version() );
 
+		$member = new Sejoli_JV\Front\Member( $this->get_plugin_name(), $this->get_version() );
 
+		$this->loader->add_action( 'wp_enqueue_scripts',				$member, 'set_localize_js_var',	1111);
+		$this->loader->add_filter( 'sejoli/member-area/menu',			$member, 'register_menu', 		11);
+		$this->loader->add_filter( 'sejoli/member-area/backend/menu',	$member, 'add_menu_in_backend', 1111);
+		$this->loader->add_filter( 'sejoli/member-area/menu-link',		$member, 'display_link_list_in_menu', 11, 4);
+		$this->loader->add_filter( 'sejoli/template-file',				$member, 'set_template_file', 111, 2);
 	}
 
 	/**
