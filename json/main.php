@@ -1,5 +1,5 @@
 <?php
-namespace SejoliJV;
+namespace Sejoli_JV;
 
 Class JSON
 {

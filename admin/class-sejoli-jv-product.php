@@ -241,6 +241,11 @@ class Product {
             endforeach;
 
         endif;
+
+
+		__print_debug( $jv_exist_data);
+
+		exit;
     }
 
 }

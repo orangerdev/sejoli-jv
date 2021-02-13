@@ -79,7 +79,7 @@ class Sejoli_JV {
 		$this->register_cli();
 		$this->define_admin_hooks();
 		$this->define_public_hooks();
-
+		$this->define_json_hooks();
 	}
 
 	/**
@@ -122,6 +122,7 @@ class Sejoli_JV {
 		* The class responsible for defining all JSON methods
 		*/
 	   require_once plugin_dir_path( dirname( __FILE__ ) ) . 'json/main.php';
+	   require_once plugin_dir_path( dirname( __FILE__ ) ) . 'json/jv.php';
 
 	   /*
 		* The functions
@@ -209,6 +210,7 @@ class Sejoli_JV {
 
 		$this->loader->add_action( 'init',					$user, 'register_role', 		10);
 		$this->loader->add_filter( 'sejoli/user/fields',	$user, 'setup_user_fields',		300);
+		$this->loader->add_action( 'admin_footer',			$user, 'set_js_footer',			100);
 
 	}
 
@@ -225,11 +227,27 @@ class Sejoli_JV {
 
 		$member = new Sejoli_JV\Front\Member( $this->get_plugin_name(), $this->get_version() );
 
-		$this->loader->add_action( 'wp_enqueue_scripts',				$member, 'set_localize_js_var',	1111);
-		$this->loader->add_filter( 'sejoli/member-area/menu',			$member, 'register_menu', 		11);
-		$this->loader->add_filter( 'sejoli/member-area/backend/menu',	$member, 'add_menu_in_backend', 1111);
-		$this->loader->add_filter( 'sejoli/member-area/menu-link',		$member, 'display_link_list_in_menu', 11, 4);
-		$this->loader->add_filter( 'sejoli/template-file',				$member, 'set_template_file', 111, 2);
+		$this->loader->add_action( 'wp_enqueue_scripts',				$member, 'set_localize_js_var',			1111);
+		$this->loader->add_filter( 'sejoli/member-area/menu',			$member, 'register_menu', 				11);
+		$this->loader->add_filter( 'sejoli/member-area/backend/menu',	$member, 'add_menu_in_backend', 		1111);
+		$this->loader->add_filter( 'sejoli/member-area/menu-link',		$member, 'display_link_list_in_menu', 	11, 4);
+		$this->loader->add_filter( 'sejoli/template-file',				$member, 'set_template_file', 			111, 2);
+
+	}
+
+	/**
+	 * Register all of the hooks related to the JSON functionality
+	 * of the plugin.
+	 *
+	 * @since    1.0.0
+	 * @access   private
+	 */
+	private function define_json_hooks() {
+
+		$jv = new Sejoli_JV\JSON\JV();
+
+		$this->loader->add_action( 'sejoli_ajax_set-for-userdata',	$jv, 'set_for_userdata');
+
 	}
 
 	/**

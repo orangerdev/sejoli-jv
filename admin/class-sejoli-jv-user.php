@@ -105,12 +105,71 @@ class User {
             'title'     => 'JV',
             'fields'    => array(
                 Field::make('html', 'sejoli_jv_data')
-                    ->set_html( $jv_data )
+				->set_html( $jv_data )
             )
         );
 
         return $fields;
 
     }
+
+	/**
+	 * Set JS code in user profile editor footer
+	 * Hooked vi action admin_footer, priority 100
+	 * @since 1.0.0
+	 */
+	public function set_js_footer() {
+
+		global $pagenow;
+
+		if( in_array($pagenow, array('user-edit.php', 'profile.php'))) :
+
+			if('user-edit.php' === $pagenow) :
+				$user_id = $_GET['user_id'];
+			else :
+				$user_id = get_current_user_id();
+			endif;
+
+			?>
+			<script type="text/javascript">
+			(function($){
+
+				'use strict';
+
+				$(document).ready(function(){
+					$.ajax({
+						url:	'<?php echo site_url('sejoli-ajax/set-for-userdata'); ?>',
+						data:	{
+							nonce:		'<?php echo wp_create_nonce('sejoli-set-for-userdata'); ?>',
+							user_id:	'<?php echo $user_id; ?>'
+						},
+						type:     'GET',
+						dataType: 'json',
+						success: function(response) {
+
+							if( 0 < Object.keys(response).length) {
+
+								let ul = $('<ul></ul>');
+
+								$.each(response, function(i, p){
+									console.log(i, p);
+									ul.append($('<li></li>').html(p));
+								});
+
+								$('#sejoli-jv-user-data .content').append(ul);
+
+							} else {
+								$('#sejoli-jv-user-data .content').html('<p><?php _e('User tidak memiliki produk JV', 'sejoli'); ?></p>')
+							}
+						}
+					});
+				});
+
+			})(jQuery);
+			</script>
+			<?php
+		endif;
+
+	}
 
 }
