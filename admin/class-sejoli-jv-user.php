@@ -73,6 +73,14 @@ class User {
 			$wp_roles = new WP_Roles();
 		endif;
 
+		/**
+		 * Update administrator member role
+		 */
+		$administrator_role = $wp_roles->get_role('administrator');
+
+		$wp_roles->add_role('administrator', 'manage_sejoli_jv_data');
+
+
         /**
 		 * Create member role
 		 */

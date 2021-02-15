@@ -71,7 +71,7 @@ class Product {
         );
 
         $users = get_users(array(
-            'role'        => 'sejoli-jv',
+            'role__in'    => array('sejoli-jv', 'administrator'),
             'count_total' => false,
             'fields'      => array( 'ID', 'display_name' )
         ));
@@ -214,6 +214,22 @@ class Product {
             return;
         endif;
 
+		$jv_users = $prev_users = $del_users  = array();
+		$prev_data = carbon_get_post_meta($post_id, 'jv_users');
+
+		if( is_array($prev_data) ) :
+
+			foreach( $prev_data as $data ) :
+
+				$prev_users[] = intval($data['user']);
+
+			endforeach;
+
+			$del_users = $prev_users;
+
+		endif;
+
+		// Set JV data to selected user
         if(
             isset($_POST['carbon_fields_compact_input']['_jv_users']) &&
             0 < count($_POST['carbon_fields_compact_input']['_jv_users'])
@@ -236,16 +252,34 @@ class Product {
                     unset($jv_exist_data[0]);
                 endif;
 
+				if(in_array($user_id, $prev_users)) :
+					$jv_users[] = $user_id;
+				endif;
+
                 update_user_meta( $user_id, 'sejoli_jv_data', $jv_exist_data);
 
             endforeach;
 
+			$del_users = array_diff($del_users, $jv_users);
+
         endif;
 
+		// Remove JV data from any related users
+		if( is_array($del_users) && 0 < count($del_users)) :
 
-		__print_debug( $jv_exist_data);
+			foreach($del_users as $user_id) :
 
-		exit;
+				$jv_data = (array) get_user_meta( $user_id, 'sejoli_jv_data', true);
+
+				if(array_key_exists($post_id, $jv_data)) :
+					unset($jv_data);
+				endif;
+
+				update_user_meta( $user_id, 'sejoli_jv_data', $jv_data);
+
+			endforeach;
+		endif;
+
     }
 
 }
