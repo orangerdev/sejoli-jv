@@ -134,4 +134,76 @@ class Admin {
 		endforeach;
 	}
 
+	/**
+	 * Check if current admin page is a sejoli page
+	 * Hooked via filter sejoli/admin/is-sejoli-page, priority 1111
+	 * @param  boolean $is_sejoli_page
+	 * @return boolean
+	 */
+	public function is_current_page_sejoli_page($is_sejoli_page) {
+
+		global $pagenow;
+
+		if(
+			isset($_GET['page']) &&
+            in_array($_GET['page'], array('sejoli-jv-management'))
+		) :
+			return true;
+		endif;
+
+		return $is_sejoli_page;
+	}
+
+    /**
+	 * Set local JS variables
+	 * Hooked via filter sejoli/admin/js-localize-data, priority 12
+	 * @since 	1.0.0
+	 * @param 	array $js_vars
+	 * @return 	array
+	 */
+	public function set_localize_js_vars($js_vars) {
+
+		$js_vars['jv'] = array(
+			'table'	=> array(
+				'ajaxurl'	=> add_query_arg(array(
+						'action' => 'sejoli-jv-earning-table'
+					), admin_url('admin-ajax.php')
+				),
+				'nonce'	=> wp_create_nonce('sejoli-render-jv-earning-table')
+			),
+		);
+
+		return $js_vars;
+	}
+
+	/**
+	 * Add JV Earning data menu
+	 * Hooked via action admin_menu, 2999
+	 * @since 	1.0.0
+	 */
+	public function add_admin_menu() {
+
+		add_menu_page(
+			__('Data JV', 'sejoli-jv'),
+			__('Data JV', 'sejoli-jv'),
+			'manage_sejoli_sejoli',
+			'sejoli-jv-management',
+			array( $this, 'display_data'),
+			plugin_dir_url( __FILE__ ) . 'images/icon.png',
+			39
+		);
+
+	}
+
+	/**
+	 * Display JV data
+	 * Called internally via add_menu_page
+	 * @since 	1.0.0
+	 * @return 	void
+	 */
+	public function display_data() {
+
+		require_once( plugin_dir_path( __FILE__ ) . '/partials/jv/main-data.php' );
+	}
+
 }
