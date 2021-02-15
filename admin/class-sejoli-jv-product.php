@@ -46,6 +46,13 @@ class Product {
 	private $version;
 
 	/**
+	 * Set user options
+	 * @since	1.0.0
+	 * @var 	false|array
+	 */
+	protected $options = false;
+
+	/**
 	 * Initialize the class and set its properties.
 	 *
 	 * @since    1.0.0
@@ -66,23 +73,27 @@ class Product {
      */
     public function get_jv_options() {
 
-        $options = array(
-            ''  => __('Pilih JV partner', 'sejoli')
-        );
+		if(false === $this->options) :
 
-        $users = get_users(array(
-            'role__in'    => array('sejoli-jv', 'administrator'),
-            'count_total' => false,
-            'fields'      => array( 'ID', 'display_name' )
-        ));
+	        $this->options = array(
+	            ''  => __('Pilih JV partner', 'sejoli')
+	        );
 
-        foreach( $users as $user ) :
+	        $users = get_users(array(
+	            'role__in'    => array('sejoli-jv', 'administrator'),
+	            'count_total' => false,
+	            'fields'      => array( 'ID', 'display_name' )
+	        ));
 
-            $options[$user->ID] = sprintf( '%s (#%s)', $user->display_name, $user->ID );
+	        foreach( $users as $user ) :
 
-        endforeach;
+	            $this->options[$user->ID] = sprintf( '%s (#%s)', $user->display_name, $user->ID );
 
-        return $options;
+	        endforeach;
+
+		endif;
+
+        return $this->options;
     }
 
     /**
