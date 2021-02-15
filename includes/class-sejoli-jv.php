@@ -247,8 +247,10 @@ class Sejoli_JV {
 
 		$jv = new Sejoli_JV\JSON\JV();
 
-		$this->loader->add_action( 'sejoli_ajax_set-for-userdata',		$jv, 'set_for_userdata');
-		$this->loader->add_action( 'wp_ajax_sejoli-jv-order-table',		$jv, 'set_for_table');
+		$this->loader->add_action( 'sejoli_ajax_set-for-userdata',				$jv, 'set_for_userdata');
+		$this->loader->add_action( 'wp_ajax_sejoli-jv-order-table',				$jv, 'set_for_table');
+		$this->loader->add_action( 'wp_ajax_sejoli-jv-order-export-prepare',	$jv, 'prepare_export');
+		$this->loader->add_action( 'sejoli_ajax_sejoli-jv-order-export',		$jv, 'export_order');
 
 	}
 

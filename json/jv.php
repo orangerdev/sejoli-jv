@@ -11,6 +11,31 @@ Class JV extends \Sejoli_JV\JSON
     }
 
     /**
+     * Set JV products related
+     * @since   1.0.0
+     * @param   integer     $product_requested
+     * @return  integer|array
+     */
+    protected function set_products($product_requested) {
+
+        $jv_data     = (array) get_user_meta( get_current_user_id(), 'sejoli_jv_data', true);
+        $jv_products = wp_list_pluck($jv_data, 'product_id');
+
+
+        if( 0 === count($jv_products)) :
+            return -999;
+        else :
+            if( in_array($product_request, $jv_products)) :
+                return $product_request;
+            else :
+                return $jv_products;
+            endif;
+        endif;
+
+        return -999;
+    }
+
+    /**
      * Set jv product detail for user data
      * Hooked via action sejoli_ajax_set-for-userdata, priority 1
      * @since 1.0.0
@@ -78,25 +103,12 @@ Class JV extends \Sejoli_JV\JSON
         ) :
 
             $jv_products = array();
-            $jv_data     = (array) get_user_meta( get_current_user_id(), 'sejoli_jv_data', true);
-            $jv_products = wp_list_pluck($jv_data, 'product_id');
 
-
-            if( !array_key_exists('product_id', $table['filter']) || empty($table['filter']['product_id'])) :
-
-                if( 0 === count($jv_products)) :
-                    $table['filter']['product_id'] = -999;
-                else :
-                    $table['filter']['product_id'] = $jv_products;
-                endif;
-
-            else :
-
-                if( !in_array($table['filter']['product_id'], $jv_products) ) :
-                    $table['filter']['product_id'] = -999;
-                endif;
-
+            if(!array_key_exists('product_id', $table['filter'])) :
+                $table['filter']['product_id'] = 0;
             endif;
+
+            $table['filter']['product_id'] = $this->set_products( $table['filter']['product_id']);
 
     		$respond = sejolisa_get_orders($table['filter'], $table);
 
@@ -113,6 +125,183 @@ Class JV extends \Sejoli_JV\JSON
 			'recordsTotal'    => $respond['recordsTotal'],
 			'recordsFiltered' => $respond['recordsTotal'],
 		]);
+
+    }
+
+    /**
+     * Prepare for export data
+     * Hooked via action wp_ajax_sejoli-jv-order-export-prepare, priority 1
+     * @since   1.0.0
+     * @return  json
+     */
+    public function prepare_export() {
+
+        $response = [
+            'url'   => admin_url('/'),
+            'data'  => [],
+        ];
+
+        $post_data = wp_parse_args($_POST,[
+            'data'    => array(),
+            'nonce'   => NULL,
+            'backend' => false
+        ]);
+
+        if(
+            current_user_can('manage_sejoli_jv_data') &&
+            wp_verify_nonce($post_data['nonce'], 'sejoli-jv-order-export-prepare')
+        ) :
+
+            $request          = array();
+
+            foreach($post_data['data'] as $_data) :
+                if(!empty($_data['val'])) :
+                    $request[$_data['name']]    = $_data['val'];
+                endif;
+            endforeach;
+
+            if(false !== $post_data['backend']) :
+                $request['backend'] = true;
+            endif;
+
+            $response['data'] = $request;
+            $response['url']  = wp_nonce_url(
+                                    add_query_arg(
+                                        $request,
+                                        site_url('/sejoli-ajax/sejoli-jv-order-export')
+                                    ),
+                                    'sejoli-jv-order-export',
+                                    'nonce'
+                                );
+        endif;
+
+        echo wp_send_json($response);
+        exit;
+
+    }
+
+    /**
+     * Do JV order export
+     * @since   1.0.0
+     * @return  void
+     */
+    public function export_order() {
+
+        $post_data = wp_parse_args($_GET,[
+			'nonce'   => NULL,
+			'backend' => false
+		]);
+
+		if(
+            wp_verify_nonce($post_data['nonce'], 'sejoli-jv-order-export') &&
+            current_user_can('manage_sejoli_jv_data')
+        ) :
+
+			$filename = 'export-jv-orders-' . strtoupper( sanitize_title( get_bloginfo('name') ) ) . '-' . date('Y-m-d-H-i-s', current_time('timestamp'));
+
+            if(!isset($post_data['product_id'])) :
+                $post_data['product_id'] = 0;
+            endif;
+
+            $post_data['product_id'] = $this->set_products( $post_data['product_id'] );
+
+			unset($post_data['backend'], $post_data['nonce']);;
+
+			$response   = sejolisa_get_orders($post_data);
+
+			$csv_data = [];
+			$csv_data[0]	= array(
+				'INV', 'product', 'created_at', 'name', 'email', 'phone', 'price', 'status', 'affiliate', 'affiliate_id',
+				'address', 'courier', 'variant',
+			);
+
+			$i = 1;
+			foreach($response['orders'] as $order) :
+
+				$address = $courier = $variant = '-';
+
+				if( isset( $order->meta_data['shipping_data'] ) ) :
+
+					$shipping_data = wp_parse_args( $order->meta_data['shipping_data'], array(
+						'courier'     => NULL,
+						'service'     => NULL,
+						'district_id' => 0,
+						'cost'        => 0,
+						'receiver'    => NULL,
+						'phone'       => NULL,
+						'address'     => NULL
+					));
+
+					if( !empty($shipping_data['courier']) ) :
+
+						$courier = $shipping_data['courier'];
+
+						$courier = $shipping_data['service'] ? $courier . ' - ' . $shipping_data['service'] : $courier;
+						$courier = $shipping_data['service'] ? $courier . ' ' . sejolisa_price_format( $shipping_data['cost'] ) : $courier;
+
+					endif;
+
+					if( isset( $shipping_data['address'] ) ) :
+
+						$address = $shipping_data['receiver'] . ' ('.$shipping_data['phone'].')' . PHP_EOL . $shipping_data['address'];
+
+						$subdistrict = sejolise_get_subdistrict_detail( $shipping_data['district_id']);
+
+						if( is_array($subdistrict) && isset($subdistrict['subdistrict_name']) ) :
+
+							$address = $address . PHP_EOL .
+										sprintf( __('Kota %s', 'sejoli'), $subdistrict['city'] ) . PHP_EOL .
+										sprintf( __('Kecamatan %s', 'sejoli'), $subdistrict['subdistrict_name'] ) . PHP_EOL .
+										sprintf( __('Provinsi %s', 'sejoli'), $subdistrict['province'] );
+						endif;
+
+					endif;
+
+				endif;
+
+				if( isset($order->meta_data['variants']) && 0 < count($order->meta_data['variants']) ) :
+
+					$variant_data = array();
+
+					foreach((array) $order->meta_data['variants'] as $variant ) :
+						$variant_data[] = strtoupper($variant['type']) . ' : ' . $variant['label'];
+					endforeach;
+
+					$variant = implode(PHP_EOL, $variant_data);
+
+				endif;
+
+				$csv_data[$i] = array(
+					$order->ID,
+					$order->product->post_title,
+					$order->created_at,
+					$order->user_name,
+					$order->user_email,
+					get_user_meta($order->user_id, '_phone', true),
+					$order->grand_total,
+					$order->status,
+					$order->affiliate_id,
+					$order->affiliate_name,
+					$address,
+					$courier,
+					$variant
+				);
+
+				$i++;
+
+			endforeach;
+
+			header('Content-Type: text/csv');
+			header('Content-Disposition: attachment; filename="' . $filename . '.csv"');
+
+			$fp = fopen('php://output', 'wb');
+			foreach ($csv_data as $line) :
+			    fputcsv($fp, $line, ',');
+			endforeach;
+			fclose($fp);
+
+		endif;
+		exit;
 
     }
 }

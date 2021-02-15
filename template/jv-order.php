@@ -55,19 +55,19 @@ let sejoli_table;
         // do export csv
         $(document).on('click', '.export-csv', function(){
             $.ajax({
-                url :  sejoli_member_area.affiliate.export_prepare.ajaxurl,
+                url :  sejoli_jv.export_prepare.link,
                 type : 'POST',
                 dataType: 'json',
                 data : {
-                    action : 'sejoli-order-export-prepare',
-                    nonce : sejoli_member_area.affiliate.export_prepare.nonce,
+                    action : 'sejoli-jv-order-export-prepare',
+                    nonce : sejoli_jv.export_prepare.nonce,
                     data : sejoli.filter('#filter-form'),
                 },
                 beforeSend : function() {
-                    sejoli.block('#affiliate-orders');
+                    sejoli.block('#jv-orders');
                 },
                 success : function(response) {
-                    sejoli.unblock('#affiliate-orders');
+                    sejoli.unblock('#jv-orders');
                     window.location.href = response.url.replace(/&amp;/g, '&');
                 }
             });
@@ -163,13 +163,10 @@ let sejoli_table;
             $('#filter-form-wrap').modal('show');
         });
 
-        console.log(sejoli_table);
-
         // trigger filter form
         $(document).on('click','.filter-form',function(e){
             e.preventDefault();
             $('#filter-form-wrap').modal('hide');
-            console.log(sejoli_table);
             sejoli_table.ajax.reload();
         });
     });

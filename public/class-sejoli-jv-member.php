@@ -112,6 +112,13 @@ class Member {
 
 				'nonce'	=> wp_create_nonce('sejoli-jv-set-for-table')
             ),
+			'export_prepare' => array(
+				'link'	=> add_query_arg(array(
+						'action' => 'sejoli-jv-order-export-prepare'
+				), admin_url('admin-ajax.php')),
+
+				'nonce' => wp_create_nonce('sejoli-jv-order-export-prepare')
+			),
 			'products' => $this->products
         ));
     }
