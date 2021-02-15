@@ -201,7 +201,7 @@ class Sejoli_JV {
 		$this->loader->add_action( 'sejoli/order/new',				$admin, 'set_jv_earning',	 			2999);
 		$this->loader->add_filter( 'sejoli/admin/is-sejoli-page',	$admin, 'is_current_page_sejoli_page', 	1199);
 		$this->loader->add_filter( 'sejoli/admin/js-localize-data',	$admin, 'set_localize_js_vars',			199);
-		$this->loader->add_action( 'admin_menu',					$admin, 'add_admin_menu', 				1999);
+		// $this->loader->add_action( 'admin_menu',					$admin, 'add_admin_menu', 				1999);
 
 		$product = new Sejoli_JV\Admin\Product( $this->get_plugin_name(), $this->get_version() );
 
