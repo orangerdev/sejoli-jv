@@ -1,9 +1,14 @@
-<?php sejoli_header(); ?>
+<?php
+
+    sejoli_header();
+
+    $products = get_user_meta( get_current_user_id(), 'sejoli_jv_data', true);
+?>
 <h2 class="ui header"><?php _e('Data Order', 'sejoli'); ?></h2>
 
 <button class="ui primary button show-filter-form"><i class="filter icon"></i> <?php _e( 'Filter Data', 'sejoli' ); ?></button>
 <button class="ui button export-csv"><i class="file alternate icon"></i> <?php _e( 'Export to CSV', 'sejoli' ); ?></button>
-<table id="affiliate-orders" class="ui striped single line table" style="width:100%;word-break: break-word;white-space: normal;">
+<table id="jv-orders" class="ui striped single line table" style="width:100%;word-break: break-word;white-space: normal;">
     <thead>
         <tr>
             <th><?php _e('Detil',       'sejoli'); ?></th>
@@ -33,131 +38,142 @@
 include( plugin_dir_path( __FILE__ ) . '/order/filter.php');
 include( plugin_dir_path( __FILE__ ) . '/order/detail.php');
 ?>
-
-<script id='order-detail' type="text/x-jsrender">
-<button type='button' class='order-detail-trigger ui mini button' data-id='{{:id}}'>DETAIL</button>
-<strong>
-    {{:product}}
-    {{if quantity}}
-    <span class='ui label red'>x{{:quantity}}</span>
-    {{/if}}
-</strong>
-{{if followup !== ''}}
-    <select data-id="{{:id}}" class="aff-order-follow-up ui dropdown">
-        <option value=""><?php _e('--Pilih Follow Up','sejoli'); ?></option>
-        {{props followup}}
-            <option value="<?php echo home_url('followup/'); ?>order_id/{{:key}}/">Follow Up {{:key}}</option>
-        {{/props}}
-    </select>
-{{/if}}
-<hr />
-<div style='line-height:220%'>
-    <span class="ui olive label">INV {{:id}}</span>
-    <span class="ui teal label"><i class="calendar outline icon"></i>{{:date}}</span>
-
-    {{if parent }}
-    <span class="ui pink label" style='text-transform:uppercase;'><i class="redo icon"></i>INV {{:parent}}</span>
-    {{/if}}
-
-    {{if type }}
-    <span class="ui brown label" style='text-transform:uppercase;'><i class="clock icon"></i>{{:type}}</span>
-    {{/if}}
-
-    {{if coupon }}
-    <span class="ui purple label" style='text-transform:uppercase;'><i class="cut icon"></i>{{:coupon}}</span>
-    {{/if}}
-</div>
-</script>
-
-<script id='order-modal-content' type="text/x-jsrender">
-<i class="close icon"></i>
-<div class="header">
-    <?php _e('Detil Order {{:id}}', 'sejoli'); ?>
-</div>
-<div class="content">
-    <div class="ui divided selection list">
-        <div class="item">
-            <span class="ui large main blue horizontal label"><?php _e('Tanggal', 'sejoli'); ?></span>
-            {{:date}}
-        </div>
-        <div class="item">
-            <span class="ui large main blue horizontal label"><?php _e('Nama Pembeli', 'sejoli'); ?></span>
-            {{:buyer_name}}
-        </div>
-        <div class="item">
-            <span class="ui large main blue horizontal label"><?php _e('Kontak', 'sejoli'); ?></span>
-            <span class='ui grey label'><i class="mobile icon"></i>{{:buyer_phone}}</span>
-            <span class='ui grey label'><i class="phone icon"></i>{{:buyer_email}}</span>
-        </div>
-        <div class="item">
-            <span class="ui large main blue horizontal label" style='float:left;'><?php _e('Produk', 'sejoli'); ?></span>
-            <span class="order-product-detail">
-                {{:product_name}} X{{:quantity}} <br />
-                {{:variants}}
-            </span>
-        </div>
-        <div class="item">
-            <span class="ui large main blue horizontal label"><?php _e('Total', 'sejoli'); ?></span>
-            {{:total}}
-        </div>
-        {{if courier}}
-        <div class='item'>
-            <span class="ui large main blue horizontal label"><?php _e('Kurir', 'sejoli'); ?></span>
-            {{:courier}}
-        </div>
-        {{/if}}
-
-        {{if address}}
-        <div class='item'>
-            <span class="ui large main blue horizontal label"><?php _e('Alamat Pengiriman', 'sejoli'); ?></span>
-            {{:address}}
-        </div>
-        {{/if}}
-        <div class="item">
-            <span class="ui large main blue horizontal label"><?php _e('Status', 'sejoli'); ?></span>
-            <span class="ui large horizontal label" style="background-color:{{:color}};color:white;">{{:status}}</span>
-        </div>
-
-        {{if subscription }}
-        <div class="item">
-            <span class="ui large main blue horizontal label"><?php _e('Tipe Langganan', 'sejoli'); ?></span>
-            <span class="ui brown label" style='text-transform:uppercase;'><i class="clock icon"></i>{{:subscription}}</span>
-        </div>
-        {{/if}}
-
-        {{if parent_order}}
-        <div class="item">
-            <span class="ui large main blue horizontal label"><?php _e('Invoice Asal', 'sejoli'); ?></span>
-            <span class="ui pink label" style='text-transform:uppercase;'><i class="redo icon"></i>INV {{:parent_order}}</span>
-        </div>
-        {{/if}}
-
-        {{if affiliate_name}}
-        <div class='item'>
-            <span class="ui large main blue horizontal label"><?php _e('Affiliasi', 'sejoli'); ?></span>
-            {{:affiliate_name}}
-            <span class='ui grey label'><i class="envelope icon"></i>{{:affiliate_phone}}</span>
-            <span class='ui grey label'><i class="mobile icon"></i>{{:affiliate_email}}</span>
-        </div>
-        {{/if}}
-    </div>
-</div>
-</script>
-<script id='order-variant-data' type="text/x-jsrender">
-<span style='text-transform:capitalize;'>{{:type}}</span> : {{:label}} <br />
-</script>
-
-<script id='order-status' type="text/x-jsrender">
-<div class="ui horizontal label boxed" style="background-color:{{:color}};">{{:label}}</div>
-</script>
-
 <script id="tmpl-nodata" type="text/x-js-render">
     <p>Tidak ada data ditemukan</p>
 </script>
-<script>
-jQuery(document).ready(function($){
-    // sejoli.affiliate.order.init();
-});
+<script type='text/javascript'>
+let sejoli_table;
+
+(function($){
+
+    'use strict';
+
+    $(document).ready(function(){
+        // render date range
+        sejoli.daterangepicker("#date-range");
+
+        // do export csv
+        $(document).on('click', '.export-csv', function(){
+            $.ajax({
+                url :  sejoli_member_area.affiliate.export_prepare.ajaxurl,
+                type : 'POST',
+                dataType: 'json',
+                data : {
+                    action : 'sejoli-order-export-prepare',
+                    nonce : sejoli_member_area.affiliate.export_prepare.nonce,
+                    data : sejoli.filter('#filter-form'),
+                },
+                beforeSend : function() {
+                    sejoli.block('#affiliate-orders');
+                },
+                success : function(response) {
+                    sejoli.unblock('#affiliate-orders');
+                    window.location.href = response.url.replace(/&amp;/g, '&');
+                }
+            });
+            return false;
+        });
+
+        sejoli_table = $('#jv-orders').DataTable({
+			"language"	: dataTableTranslation,
+			'ajax'		: {
+				'method': 'POST',
+				'url'   : sejoli_jv.order.link,
+				'data'  : function(data) {
+					data.filter   = sejoli.filter('#filter-form');
+	                data.action   = 'sejoli-jv-order-table'
+					data.nonce 	  = sejoli_jv.order.nonce;
+				}
+			},
+			// "bLengthChange": false,
+			"bFilter": false,
+			"serverSide": true,
+			pageLength : 50,
+			lengthMenu : [
+				[10, 50, 100, 200, -1],
+				[10, 50, 100, 200, dataTableTranslation.all],
+			],
+			order: [
+				[ 0, "desc" ]
+			],
+			columnDefs: [
+				{
+					targets: [1, 2, 3],
+					orderable: false
+				},
+				{
+					targets: 0,
+					data : 'ID',
+					render : function( data, type, full) {
+						let tmpl = $.templates('#order-detail'),
+							subsctype = null,
+							quantity = null;
+
+						if(1 < parseInt(full.quantity)) {
+							quantity = full.quantity;
+						}
+
+						return tmpl.render({
+							id : full.ID,
+							product : full.product_name,
+							coupon : full.coupon_code,
+							parent : full.order_parent_id,
+							date : sejoli.convertdate(full.created_at),
+							type : sejoli_member_area.subscription.type[full.type],
+							quantity : quantity,
+						})
+					}
+				},{
+					targets: 1,
+					width: '15%',
+					data : 'user_name'
+				},{
+					targets: 2,
+					width: '15%',
+					data : 'grand_total',
+					className : 'price',
+					render : function(data, type, full) {
+						return sejoli_member_area.text.currency + sejoli.formatPrice(data)
+					}
+				},{
+					targets: 3,
+					data : 'status',
+					width: '100px',
+					render : function( data, type, full ) {
+						let tmpl = $.templates('#order-status');
+						return tmpl.render({
+							label : sejoli_member_area.order.status[full.status],
+							color : sejoli_member_area.color[full.status]
+						});
+					}
+				}
+			]
+		});
+
+		sejoli_table.on( 'preXhr.dt', function( e, settings, data ){
+			sejoli.block('#jv-orders');
+		});
+
+		sejoli_table.on( 'xhr.dt', function ( e, settings, json, xhr ) {
+			sejoli.unblock('#jv-orders');
+		});
+
+        // show filter form
+        $(document).on('click','.show-filter-form', function(){
+            $('#filter-form-wrap').modal('show');
+        });
+
+        console.log(sejoli_table);
+
+        // trigger filter form
+        $(document).on('click','.filter-form',function(e){
+            e.preventDefault();
+            $('#filter-form-wrap').modal('hide');
+            console.log(sejoli_table);
+            sejoli_table.ajax.reload();
+        });
+    });
+})(jQuery)
 </script>
 
 <?php sejoli_footer();

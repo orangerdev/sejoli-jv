@@ -79,6 +79,20 @@ class Member {
                             );
 	}
 
+	/**
+	 * Set jv product based on current user
+	 * Hooked via action wp_loaded, priority 1010
+	 * @since 	1.0.0
+	 */
+	public function set_jv_products() {
+
+		if(current_user_can('manage_sejoli_jv_data')) :
+
+			$this->products = (array) get_user_meta( get_current_user_id(), 'sejoli_jv_data', true);
+
+		endif;
+	}
+
     /**
      * Set local js variables
      * Hooked via action wp_enqueue_scripts, priority 1111
@@ -86,14 +100,19 @@ class Member {
      */
     public function set_localize_js_var() {
 
-        $this->products = (array) get_user_meta( get_current_user_id(), 'sejoli_jv_data', true);
+        if(!current_user_can('manage_sejoli_jv_data')) :
+			return;
+		endif;
 
         wp_localize_script( 'sejoli-member-area', 'sejoli_jv', array(
             'order' => array(
                 'link' => add_query_arg(array(
                     'action'    => 'sejoli-jv-order-table',
-                ), admin_url('admin-ajax.php'))
-            )
+                ), admin_url('admin-ajax.php')),
+
+				'nonce'	=> wp_create_nonce('sejoli-jv-set-for-table')
+            ),
+			'products' => $this->products
         ));
     }
 

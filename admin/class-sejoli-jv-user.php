@@ -148,7 +148,7 @@ class User {
 					$.ajax({
 						url:	'<?php echo site_url('sejoli-ajax/set-for-userdata'); ?>',
 						data:	{
-							nonce:		'<?php echo wp_create_nonce('sejoli-set-for-userdata'); ?>',
+							nonce:		'<?php echo wp_create_nonce('sejoli-jv-set-for-userdata'); ?>',
 							user_id:	'<?php echo $user_id; ?>'
 						},
 						type:     'GET',

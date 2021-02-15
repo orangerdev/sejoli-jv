@@ -227,6 +227,7 @@ class Sejoli_JV {
 
 		$member = new Sejoli_JV\Front\Member( $this->get_plugin_name(), $this->get_version() );
 
+		$this->loader->add_action( 'wp_loaded',							$member, 'set_jv_products',				1010);
 		$this->loader->add_action( 'wp_enqueue_scripts',				$member, 'set_localize_js_var',			1111);
 		$this->loader->add_filter( 'sejoli/member-area/menu',			$member, 'register_menu', 				11);
 		$this->loader->add_filter( 'sejoli/member-area/backend/menu',	$member, 'add_menu_in_backend', 		1111);
@@ -246,7 +247,8 @@ class Sejoli_JV {
 
 		$jv = new Sejoli_JV\JSON\JV();
 
-		$this->loader->add_action( 'sejoli_ajax_set-for-userdata',	$jv, 'set_for_userdata');
+		$this->loader->add_action( 'sejoli_ajax_set-for-userdata',		$jv, 'set_for_userdata');
+		$this->loader->add_action( 'wp_ajax_sejoli-jv-order-table',		$jv, 'set_for_table');
 
 	}
 
