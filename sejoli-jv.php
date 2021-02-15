@@ -106,7 +106,7 @@ $update_checker = Puc_v4_Factory::buildUpdateChecker(
 	'sejoli-jv'
 );
 
-$update_checker->setBranch('master');
+$update_checker->setBranch('release');
 
 run_sejoli_jv();
 
