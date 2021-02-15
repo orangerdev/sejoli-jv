@@ -76,7 +76,13 @@ Class JV extends \Sejoli_JV\JSON
                             ->get();
 
                 foreach($products as $product):
-                    $response[$product->ID] = $product->post_title;
+                    $response[$product->ID] = sprintf(
+                                                '%s - %s',
+                                                $product->post_title,
+                                                ('percentage' === $jv_data[$product->ID]['type']) ?
+                                                    $jv_data[$product->ID]['value'].'%' :
+                                                    sejolisa_price_format($jv_data[$product->ID]['value'])
+                                            );
                 endforeach;
 
             endif;
