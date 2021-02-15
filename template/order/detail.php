@@ -1,5 +1,5 @@
 <script id='order-detail' type="text/x-jsrender">
-<button type='button' class='order-detail-trigger ui mini button' data-id='{{:id}}'>DETAIL</button>
+<!--<button type='button' class='order-detail-trigger ui mini button' data-id='{{:id}}'>DETAIL</button>-->
 <strong>
     {{:product}}
     {{if quantity}}
