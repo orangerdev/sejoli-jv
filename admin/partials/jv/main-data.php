@@ -1,3 +1,6 @@
+<?php
+    $date = date('Y-m-01') . ' - ' . date('Y-m-t');
+?>
 <div class="wrap">
     <h1 class="wp-heading-inline">
         <?php _e('Data JV', 'sejoli-jv'); ?>
@@ -48,22 +51,12 @@ let sejoli_table;
     $(document).ready(function() {
 
         sejoli.helper.select_2(
-            "select[name='user_id']",
-            sejoli_admin.user.select.ajaxurl,
-            sejoli_admin.user.placeholder
-        );
-
-        sejoli.helper.select_2(
-            "select[name='affiliate_id']",
-            sejoli_admin.user.select.ajaxurl,
-            sejoli_admin.affiliate.placeholder
-        );
-
-        sejoli.helper.select_2(
             "select[name='product_id']",
             sejoli_admin.product.select.ajaxurl,
             sejoli_admin.product.placeholder
         );
+
+        sejoli.helper.daterangepicker("input[name='date-range']");
 
         sejoli.helper.filterData();
 
@@ -79,7 +72,7 @@ let sejoli_table;
                 url: sejoli_admin.jv.table.ajaxurl,
                 data: function(data) {
                     data.filter = sejoli.var.search;
-                    data.action = 'sejoli-jv-table';
+                    data.action = 'sejoli-jv-earning-table';
                     data.nonce = sejoli_admin.jv.table.nonce
                     data.backend  = true;
                 }
@@ -94,26 +87,15 @@ let sejoli_table;
             ],
             columnDefs: [
                 {
-                    targets: [0],
+                    targets: [1,2],
                     orderable: false
                 },{
                     targets: 0,
-                    data : 'display_name',
-                    render: function(data, type, full) {
-
-                        let tmpl = $.templates('#user-detail');
-
-                        return tmpl.render({
-                            id : full.user_id,
-                            display_name : full.display_name,
-                            email : full.user_email,
-                            detail_url: full.detail_url,
-                        })
-                    }
+                    data : 'display_name'
                 },{
                     targets: 1,
-                    width:  '12n0px',
-                    data: 'earning',
+                    width:  '120px',
+                    data: 'total_value',
                     className: 'price'
                 },{
                     targets: 2,
@@ -145,10 +127,4 @@ let sejoli_table;
 
     });
 })(jQuery);
-</script>
-<script id='user-detail' type="text/x-jsrender">
-<a type='button' class='ui mini button' href='{{:detail_url}}' target='_blank'>DETAIL</a> {{:display_name}}
-<div style='line-height:220%'>
-    <span class="ui purple label"><i class="envelope icon"></i>{{:email}}</span>
-</div>
 </script>

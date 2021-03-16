@@ -310,4 +310,50 @@ Class JV extends \Sejoli_JV\JSON
 		exit;
 
     }
+
+    /**
+     * Set for earning table
+     * Hooked via action wp_ajax_sejoli-jv-earning-table, priority 1
+     * @since 1.0.0
+     */
+    public function set_for_earning_table() {
+
+        $table = $this->set_table_args($_POST);
+
+		$data    = [];
+
+        if(
+            current_user_can('manage_sejoli_jv_data') &&
+            isset($_POST['nonce']) &&
+            wp_verify_nonce($_POST['nonce'], 'sejoli-render-jv-earning-table')
+        ) :
+
+            $jv_products = array();
+
+    		$respond = sejoli_jv_get_earning_data($table['filter'], $table);
+
+    		if(false !== $respond['valid']) :
+
+                foreach( $respond['jv'] as $i => $jv) :
+
+                    $data[$i] = (array) $jv;
+                    $data[$i]['earning_value']     = sejolisa_price_format( $data[$i]['earning_value'] );
+                    $data[$i]['expenditure_value'] = sejolisa_price_format( $data[$i]['expenditure_value'] );
+                    $data[$i]['total_value']       = sejolisa_price_format( $data[$i]['total_value'] );
+
+                endforeach;
+                
+    		endif;
+
+        endif;
+
+		echo wp_send_json([
+			'table'           => $table,
+			'draw'            => $table['draw'],
+			'data'            => $data,
+			'recordsTotal'    => $respond['recordsTotal'],
+			'recordsFiltered' => $respond['recordsTotal'],
+		]);
+
+    }
 }

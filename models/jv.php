@@ -237,56 +237,6 @@ Class JV extends \SejoliJV\Model
     }
 
     /**
-     * Set data for chart purpose
-     * @since   1.5.4
-     */
-    static function set_for_chart($type = 'total-order') {
-
-        parent::$table = self::$table;
-
-        self::calculate_chart_range_date();
-        $columns = [];
-
-        switch ($type) :
-            case 'total-order':
-                $columns[] = Capsule::raw('count(ID) AS total');
-                break;
-
-            case 'total-paid':
-                $columns[] = Capsule::raw('sum(jv value) AS total');
-                break;
-
-        endswitch;
-
-        $columns[] ='status';
-
-        $groups = ['status'];
-
-        if('year' === self::$chart['type']) :
-            $columns[] = Capsule::raw('YEAR(created_at) AS year');
-            $groups[]  = 'year';
-        elseif('month' === self::$chart['type']) :
-            $columns[] = Capsule::raw('DATE_FORMAT(created_at, "%Y-%m") AS month');
-            $groups[]  = 'month';
-        elseif('date' === self::$chart['type']) :
-            $columns[] = Capsule::raw('DATE(created_at) AS date');
-            $groups[]  = 'date';
-        endif;
-
-        $query = Capsule::table(self::table())
-                    ->select($columns);
-
-        $query = self::set_filter_query($query);
-        $data  = $query->groupBy($groups)
-                    ->get();
-
-        self::set_respond('data' ,$data);
-        self::set_respond('chart',self::$chart);
-
-        return new static;
-    }
-
-    /**
      * Add JV earning
      * @since   1.0.0
      */
@@ -356,4 +306,59 @@ Class JV extends \SejoliJV\Model
         return new static;
     }
 
+    /**
+     * Get all JV earning
+     * @since   1.0.0
+     */
+    static public function get_all_earning() {
+
+        global $wpdb;
+
+        parent::$table = self::$table;
+
+        $query  = Capsule::table( Capsule::raw( self::table() . ' AS earning' ))
+                    ->select(
+                        'earning.user_id',
+                        'user.display_name',
+                        'user.user_email',
+                        Capsule::raw(
+                            'SUM(CASE WHEN type = "in" THEN value ELSE 0 END) AS earning_value'
+                        ),
+                        Capsule::raw(
+                            'SUM(CASE WHEN type = "out" THEN value ELSE 0 END) AS expenditure_value'
+                        ),
+                        Capsule::raw(
+                            'SUM(
+                                CASE
+                                    WHEN type = "in" THEN value
+                                    ELSE -value
+                                END
+                             ) AS total_value'
+                        )
+                    )
+                    ->join(
+                        $wpdb->users . ' AS user', 'user.ID', '=', 'earning.user_id'
+                    )
+                    ->where('status', 'added')
+                    ->orderBy('total_value', 'DESC')
+                    ->groupBy('user_id');
+
+        $query  = self::set_filter_query( $query );
+
+        $result = $query->get();
+
+        if($result) :
+
+            self::set_valid(true);
+            self::set_respond('jv', $result);
+
+        else :
+
+            self::set_valid(false);
+            self::set_message( __('No JV data', 'sejoli'));
+
+        endif;
+
+        return new static;
+    }
 }

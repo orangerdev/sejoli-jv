@@ -65,8 +65,6 @@ function sejoli_jv_add_expend_data( array $args ) {
                     'meta_data'  => array()
                 ));
 
-                __print_debug($args);
-
     $expend = SejoliJV\Model\JV::reset()
                     ->set_expend( $args['expend_id'] )
                     ->set_product_id( $args['product_id'] )
@@ -78,5 +76,46 @@ function sejoli_jv_add_expend_data( array $args ) {
                     ->respond();
 
     return $expend;
+
+}
+
+/**
+ * Get all JV earning data
+ * @since   1.0.0
+ * @param   array   $args
+ * @return  array
+ */
+function sejoli_jv_get_earning_data( array $args, array $table) {
+
+    $args = wp_parse_args($args,[
+        'product_id'    => NULL,
+        'date-range'    => date('Y-m-01') . ' - ' . date('Y-m-t'),
+    ]);
+
+    $table = wp_parse_args($table, [
+        'start'   => NULL,
+        'length'  => NULL,
+        'order'   => NULL,
+        'filter'  => NULL
+    ]);
+
+    if(isset($args['date-range']) && !empty($args['date-range'])) :
+        $table['filter']['date-range'] = $args['date-range'];
+        unset($args['date-range']);
+    endif;
+
+    $query = SejoliJV\Model\JV::reset()
+                    ->set_filter_from_array($args);
+
+    if(isset($table['filter']['date-range']) && !empty($table['filter']['date-range'])) :
+        list($start, $end) = explode(' - ', $table['filter']['date-range']);
+        $query = $query->set_filter('created_at', $start.' 00:00:00', '>=')
+                    ->set_filter('created_at', $end.' 23:59:59', '<=');
+    endif;
+
+    $response = $query->get_all_earning()
+                    ->respond();
+
+    return $response;
 
 }
