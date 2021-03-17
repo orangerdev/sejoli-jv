@@ -128,8 +128,8 @@ Class JV extends \Sejoli_JV\JSON
 			'table'           => $table,
 			'draw'            => $table['draw'],
 			'data'            => $data,
-			'recordsTotal'    => $respond['recordsTotal'],
-			'recordsFiltered' => $respond['recordsTotal'],
+			'recordsTotal'    => count($data),
+			'recordsFiltered' => count($data)
 		]);
 
     }
@@ -342,7 +342,7 @@ Class JV extends \Sejoli_JV\JSON
                     $data[$i]['total_value']       = sejolisa_price_format( $data[$i]['total_value'] );
 
                 endforeach;
-                
+
     		endif;
 
         endif;
@@ -351,8 +351,8 @@ Class JV extends \Sejoli_JV\JSON
 			'table'           => $table,
 			'draw'            => $table['draw'],
 			'data'            => $data,
-			'recordsTotal'    => $respond['recordsTotal'],
-			'recordsFiltered' => $respond['recordsTotal'],
+			'recordsTotal'    => count($data),
+			'recordsFiltered' => count($data),
 		]);
 
     }

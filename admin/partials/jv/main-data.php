@@ -87,21 +87,22 @@ let sejoli_table;
             ],
             columnDefs: [
                 {
-                    targets: [1,2],
+                    targets:   [1,2],
                     orderable: false
                 },{
                     targets: 0,
-                    data : 'display_name'
+                    data:    'display_name'
                 },{
-                    targets: 1,
-                    width:  '120px',
-                    data: 'total_value',
+                    targets:   1,
+                    width:     '120px',
+                    data:      'total_value',
                     className: 'price'
                 },{
-                    targets: 2,
-                    width:  '80px',
+                    targets:   2,
+                    width:     '80px',
+                    className: 'center',
                     render: function(data, type, full) {
-                        return 'action'
+                        return "<a class='order-detail-trigger ui mini button' href='" + sejoli_admin.jv.table.single_link + "&user_id=" + full.user_id + "'>DETAIL</a>";
                     }
                 }
             ]

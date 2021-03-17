@@ -169,7 +169,18 @@ class Admin {
 						'action' => 'sejoli-jv-earning-table'
 					), admin_url('admin-ajax.php')
 				),
-				'nonce'	=> wp_create_nonce('sejoli-render-jv-earning-table')
+				'single_link' => add_query_arg(array(
+									'page'	=> 'sejoli-jv-management'
+								 ),admin_url('admin.php')),
+				'nonce'       => wp_create_nonce('sejoli-render-jv-earning-table')
+			),
+			'single_table'	=> array(
+				'ajaxurl'	=> add_query_arg(array(
+						'action' => 'sejoli-jv-single-table'
+					), admin_url('admin-ajax.php')
+				),
+				'nonce'	=> wp_create_nonce('sejoli-render-jv-single-table'),
+				'user'	=> (isset($_GET['user_id'])) ? absint($_GET['user_id']) : NULL
 			),
 		);
 
@@ -203,7 +214,11 @@ class Admin {
 	 */
 	public function display_data() {
 
-		require_once( plugin_dir_path( __FILE__ ) . '/partials/jv/main-data.php' );
+		if(!isset($_GET['user_id'])) :
+			require_once( plugin_dir_path( __FILE__ ) . '/partials/jv/main-data.php' );
+		else :
+			require_once( plugin_dir_path( __FILE__ ) . '/partials/jv/single-data.php' );
+		endif;
 	}
 
 }
