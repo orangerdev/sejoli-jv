@@ -356,4 +356,71 @@ Class JV extends \Sejoli_JV\JSON
 		]);
 
     }
+
+    /**
+     * Set for single user table
+     * Hooked via action wp_ajax_sejoli-jv-single-table, priority 1
+     * @since 1.0.0
+     */
+    public function set_for_single_table() {
+
+        $table = $this->set_table_args($_POST);
+
+		$data    = [];
+
+        if(
+            current_user_can('manage_sejoli_jv_data') &&
+            isset($_POST['nonce']) &&
+            wp_verify_nonce($_POST['nonce'], 'sejoli-render-jv-single-table') &&
+            !empty($_POST['user'])
+        ) :
+
+            $jv_products = array();
+            $user_id     = intval($_POST['user']);
+    		$respond     = sejoli_jv_get_single_user_data( $user_id, $table['filter'], $table);
+
+    		if(false !== $respond['valid']) :
+
+                foreach( $respond['jv'] as $i => $jv) :
+
+                    $data[$i] = (array) $jv;
+
+                    if( 'in' === $jv->type ) :
+
+                        $product_name = '';
+                        $product      = sejolisa_get_product($jv->product_id);
+
+                        if( is_a($product, 'WP_Post') ) :
+                            $product_name = $product->post_title;
+                        else :
+                            $product_name = 'ID '.$jv->product_id.' '. __('(telah dihapus)', 'sejoli');
+                        endif;
+
+
+                        $data[$i]['note'] = sprintf( __('Penjualan produk %s dari INV %s', 'sejoli-jv'), $product_name, $jv->order_id);
+                    else :
+
+                        $meta_data        = maybe_unserialize( $jv->meta_data );
+                        $data[$i]['note'] = $meta_data['note'];
+
+                    endif;
+
+                    $data[$i]['date']  = date('Y M d', strtotime($jv->created_at));
+                    $data[$i]['value'] = sejolisa_price_format( $jv->value );
+
+                endforeach;
+
+    		endif;
+
+        endif;
+
+		echo wp_send_json([
+			'table'           => $table,
+			'draw'            => $table['draw'],
+			'data'            => $data,
+			'recordsTotal'    => count($data),
+			'recordsFiltered' => count($data),
+		]);
+
+    }
 }

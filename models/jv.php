@@ -361,4 +361,37 @@ Class JV extends \SejoliJV\Model
 
         return new static;
     }
+
+    /**
+     * Get single user data
+     * @since   1.0.0
+     */
+    static public function get_single_user() {
+
+        global $wpdb;
+
+        parent::$table = self::$table;
+
+        $query  = Capsule::table( self::table())
+                    ->where('status', 'added')
+                    ->where('user_id', self::$user_id);
+
+        $query  = self::set_filter_query( $query );
+
+        $result = $query->get();
+
+        if($result) :
+
+            self::set_valid(true);
+            self::set_respond('jv', $result);
+
+        else :
+
+            self::set_valid(false);
+            self::set_message( __('No JV data', 'sejoli'));
+
+        endif;
+
+        return new static;
+    }
 }
