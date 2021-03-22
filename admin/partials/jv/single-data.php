@@ -8,9 +8,16 @@
     <div class="sejoli-table-wrapper">
         <div class='sejoli-form-action-holder'>
 
+            <div class="sejoli-form-information" style="float:left;">
+                <h3 id='sejoli-filter-date'></h3>
+            </div>
+
             <div class="sejoli-form-filter box" style='float:right;'>
+
                 <button type="button" name="button" class='export-csv button'><?php _e('Export CSV', 'sejoli-jv'); ?></button>
+                <button type="button" name="button" class='add-data button'><?php _e('Input Data', 'sejoli-jv'); ?></button>
                 <button type="button" name="button" class='button toggle-search'><?php _e('Filter Data', 'sejoli-jv'); ?></button>
+
                 <div class="sejoli-form-filter-holder sejoli-form-float">
                     <select class="autosuggest filter" name="product_id"></select>
                     <input type="text" class='filter' name="date-range" value="<?php echo $date; ?>" placeholder="<?php _e('Pencarian berdasarkan tanggal', 'sejoli-jv'); ?>">
@@ -117,6 +124,7 @@ let sejoli_table;
 
         sejoli_table.on('xhr',function(){
             sejoli.helper.unblockUI('.sejoli-table-holder');
+                $('#sejoli-filter-date').html('Data tanggal : ' + date_range);
         });
 
         $(document).on('click', '.toggle-search', function(){

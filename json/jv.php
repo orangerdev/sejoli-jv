@@ -423,4 +423,60 @@ Class JV extends \Sejoli_JV\JSON
 		]);
 
     }
+
+    /**
+     * Add expenditure data
+     * Hooked via action wp_ajax_sejoli-jv-add-data, priority 10
+     * @since   1.0.0
+     */
+    public function add_expenditure() {
+
+        $response = array(
+            'valid'     => true,
+            'message'   =>__('Terjadi kesalahan di sistem. Coba lain kali', 'sejoli-jv')
+        );
+
+        $messages = array();
+
+        $post_data = wp_parse_args($_POST, array(
+            'nonce'      => NULL,
+            'note'       => NULL,
+            'amount'     => NULL,
+            'product_id' => 0
+        ));
+
+        if( wp_verify_nonce($post_data['nonce'], 'sejoli-jv-add-data') ) :
+
+            $amount = floatval( preg_replace('~\D~', '', $post_data['amount']) );
+
+            if( 0 >= $amount ) :
+                $messages[]        = __('Nilai harus diisi', 'sejoli-jv');
+                $response['valid'] = false;
+            endif;
+
+            if( empty($post_data['note']) ) :
+                $messages[]        = __('Catatan harus diisi', 'sejoli-jv');
+                $response['valid'] = false;
+            endif;
+
+            if( 0 >= intval($post_data['product_id']) ) :
+
+                $messages[]        = __('Produk harus dipilih', 'sejoli-jv');
+                $response['valid'] = false;
+
+            endif;
+
+            if( true === $response['valid'] ) :
+                $response['message'] = __('Penambahan nilai sudah berhasil', 'sejoli-jv');
+            endif;
+
+        endif;
+
+        if(false === $response['valid']) :
+            $response['message'] = implode( '<br />', $messages);
+        endif;
+
+        wp_send_json( $response );
+        exit;
+    }
 }

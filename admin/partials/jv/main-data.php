@@ -8,9 +8,14 @@
     <div class="sejoli-table-wrapper">
         <div class='sejoli-form-action-holder'>
 
+            <div class="sejoli-form-information" style="float:left;">
+                <h3 id='sejoli-filter-date'></h3>
+            </div>
+
             <div class="sejoli-form-filter box" style='float:right;'>
-                <button type="button" name="button" class='export-csv button'><?php _e('Export CSV', 'sejoli-jv'); ?></button>
-                <button type="button" name="button" class='button toggle-search'><?php _e('Filter Data', 'sejoli-jv'); ?></button>
+                <button type="button" name="export-csv"      class='export-csv button'><?php _e('Export CSV', 'sejoli-jv'); ?></button>
+                <button type="button" name="add-expenditure" class='add-expenditure button'><?php _e('Input Data', 'sejoli-jv'); ?></button>
+                <button type="button" name="toggle-search"   class='button toggle-search'><?php _e('Filter Data', 'sejoli-jv'); ?></button>
                 <div class="sejoli-form-filter-holder sejoli-form-float">
                     <select class="autosuggest filter" name="product_id"></select>
                     <input type="text" class='filter' name="date-range" value="<?php echo $date; ?>" placeholder="<?php _e('Pencarian berdasarkan tanggal', 'sejoli-jv'); ?>">
@@ -19,7 +24,10 @@
                     <!-- <button type="button" name="button" class='button button-primary reset-search'><?php _e('Reset Pencarian', 'sejoli-jv'); ?></button> -->
                 </div>
             </div>
+
+            <div style='clear:both;display:block'></div>
         </div>
+
         <div class="sejoli-table-holder">
             <table id="sejoli-jv" class="display" style="width:100%">
                 <thead>
@@ -42,6 +50,9 @@
         </div>
     </div>
 </div>
+
+<?php require_once( plugin_dir_path( __FILE__) . '/add-data.php' ); ?>
+
 <script type="text/javascript">
 
 let sejoli_table;
@@ -113,7 +124,12 @@ let sejoli_table;
         });
 
         sejoli_table.on('xhr',function(){
+
             sejoli.helper.unblockUI('.sejoli-table-holder');
+
+            let date_range = $('input[name="date-range"]').val();
+
+            $('#sejoli-filter-date').html('Data tanggal : ' + date_range);
         });
 
         $(document).on('click', '.toggle-search', function(){

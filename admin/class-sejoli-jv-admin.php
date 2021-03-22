@@ -164,6 +164,7 @@ class Admin {
 	public function set_localize_js_vars($js_vars) {
 
 		$js_vars['jv'] = array(
+
 			'table'	=> array(
 				'ajaxurl'	=> add_query_arg(array(
 						'action' => 'sejoli-jv-earning-table'
@@ -174,6 +175,7 @@ class Admin {
 								 ),admin_url('admin.php')),
 				'nonce'       => wp_create_nonce('sejoli-render-jv-earning-table')
 			),
+
 			'single_table'	=> array(
 				'ajaxurl'	=> add_query_arg(array(
 						'action' => 'sejoli-jv-single-table'
@@ -182,6 +184,13 @@ class Admin {
 				'nonce'	=> wp_create_nonce('sejoli-render-jv-single-table'),
 				'user'	=> (isset($_GET['user_id'])) ? absint($_GET['user_id']) : NULL
 			),
+
+			'add_expenditure' => array(
+				'ajaxurl'	=> add_query_arg(array(
+						'action' => 'sejoli-jv-add-data'
+					), admin_url('admin-ajax.php')
+				)
+			)
 		);
 
 		return $js_vars;
@@ -219,6 +228,30 @@ class Admin {
 		else :
 			require_once( plugin_dir_path( __FILE__ ) . '/partials/jv/single-data.php' );
 		endif;
+	}
+
+	/**
+	 * Enqueue JS and CSS needed files
+	 * @since 	1.0.0
+	 * @return 	void
+	 */
+	public function enqueue_css_js_files() {
+
+		if(
+			isset($_GET['page']) &&
+            in_array($_GET['page'], array('sejoli-jv-management'))
+		) :
+
+			wp_enqueue_script(
+				'jquery-mask',
+				plugin_dir_url( __FILE__ ) . 'js/jquery-mask-plugin.js',
+				array('jquery'),
+				'1.14.16',
+				true
+			);
+
+		endif;
+
 	}
 
 }
