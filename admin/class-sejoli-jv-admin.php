@@ -62,7 +62,7 @@ class Admin {
 	 * @param  	integer 	$order_id
 	 * @return 	float
 	 */
-	protected function get_nett_order($order, $order_total) {
+	protected function get_nett_order($order_id, $order, $order_total) {
 
 		// if has shipment data
 		if(
@@ -77,7 +77,7 @@ class Admin {
 		endif;
 
 		// check by total commission
-		$total_commission = sejolisa_get_total_commission_by_order( $order_id );
+		$total_commission = sejolisa_get_total_commission_by_order( $order_id, false );
 
 		$order_total -= $total_commission;
 
@@ -92,16 +92,16 @@ class Admin {
 	 */
 	public function set_jv_earning( array $order_data ) {
 
-		$order_data  = sejolisa_get_order( array('ID' => $order_data['id'] ));
-		$order       = $order_data['orders'];
-		$jv_setup    = sejoli_jv_get_product_setup( $order['product_id'] );
-		$order_total = floatval( $order['grand_total'] );
+		$order_detail = sejolisa_get_order( array('ID' => $order_data['id'] ));
+		$order        = $order_detail['orders'];
+		$jv_setup     = sejoli_jv_get_product_setup( $order['product_id'] );
+		$order_total  = floatval( $order['grand_total'] );
 
 		if( false === $jv_setup || 0 >= $order_total) :
 			return;
 		endif;
 
-		$nett_total  = $this->get_nett_order($order, $order_total);
+		$nett_total  = $this->get_nett_order($order_data['ID'], $order, $order_total);
 
 		foreach( $jv_setup as $setup ) :
 
