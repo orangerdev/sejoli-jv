@@ -101,6 +101,7 @@ let sejoli_table;
                     orderable: false
                 },{
                     targets: 0,
+                    width:   '120px',
                     data:    'date'
                 },{
                     targets: 1,
@@ -123,8 +124,13 @@ let sejoli_table;
         });
 
         sejoli_table.on('xhr',function(){
+
             sejoli.helper.unblockUI('.sejoli-table-holder');
-                $('#sejoli-filter-date').html('Data tanggal : ' + date_range);
+
+            let date_range = $('input[name="date-range"]').val();
+
+            $('#sejoli-filter-date').html('Data tanggal : ' + date_range);
+
         });
 
         $(document).on('click', '.toggle-search', function(){
