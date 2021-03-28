@@ -92,7 +92,8 @@ class Admin {
 	 */
 	public function set_jv_earning( array $order_data ) {
 
-		$order_detail = sejolisa_get_order( array('ID' => $order_data['id'] ));
+		$order_id     = $order_data['ID'];
+		$order_detail = sejolisa_get_order( array('ID' => $order_id ));
 		$order        = $order_detail['orders'];
 		$jv_setup     = sejoli_jv_get_product_setup( $order['product_id'] );
 		$order_total  = floatval( $order['grand_total'] );
@@ -101,7 +102,7 @@ class Admin {
 			return;
 		endif;
 
-		$nett_total  = $this->get_nett_order($order_data['ID'], $order, $order_total);
+		$nett_total  = $this->get_nett_order($order_id, $order, $order_total);
 
 		foreach( $jv_setup as $setup ) :
 
@@ -111,25 +112,40 @@ class Admin {
 				$value = floor( $nett_total * $value / 100 );
 			endif;
 
-			sejoli_jv_add_earning_data( array(
+			$response = sejoli_jv_add_earning_data( array(
 				'order_id'   => $order_id,
 				'product_id' => $order['product_id'],
 				'user_id'    => $setup['user'],
 				'value'      => $value
 			) );
 
-			do_action(
-				'sejoli/log/write',
-				'jv-earning',
-				sprintf(
-					__('JV Earning from order %s for user ID %s, order total %s, nett total %s and earning for the user %s', 'sejoli-jv'),
-					$order_id,
-					$setup['user'],
-					$order_total,
-					$nett_total,
-					$value
-				)
-			);
+			if( false !== $response['valid'] ) :
+
+				do_action(
+					'sejoli/log/write',
+					'jv-earning',
+					sprintf(
+						__('JV Earning from order %s for user ID %s, order total %s, nett total %s and earning for the user %s', 'sejoli-jv'),
+						$order_id,
+						$setup['user'],
+						$order_total,
+						$nett_total,
+						$value
+					)
+				);
+
+			else :
+
+				do_action(
+					'sejoli/log/write',
+					'jv-earning-error',
+					sprintf(
+						__('Error on add JV Earning cause : %s', 'sejoli-jv'),
+						implode(', ', $response['messages']['error'])
+					)
+				);
+
+			endif;
 
 		endforeach;
 	}
@@ -252,6 +268,46 @@ class Admin {
 
 		endif;
 
+	}
+
+	/**
+	 * Set complete earning
+	 * Hooked via action sejoli/order/set-status/completed, priority 1999
+	 * @param 	array $order_data
+	 */
+	public function set_complete_earning( array $order_data ) {
+
+		$order_id = $order_data['ID'];
+
+		sejoli_jv_update_earning_status( $order_id, 'added' );
+	}
+
+	/**
+	 * Set pending earning
+	 * Hooked via action sejoli/order/set-status/on-hold, priority 1999
+	 * Hooked via action sejoli/order/set-status/in-progress, priority 1999
+	 * Hooked via action sejoli/order/set-status/shipped, priority 1999
+	 * @param 	array $order_data
+	 */
+	public function set_pending_earning( array $order_data ) {
+
+		$order_id = $order_data['ID'];
+
+		sejoli_jv_update_earning_status( $order_id, 'pending' );
+
+	}
+
+	/**
+	 * Set cancelled earning
+	 * Hooked via action sejoli/order/set-status/on-hold, priority 1999
+	 * Hooked via action sejoli/order/set-status/cancelled, priority 1999
+	 * Hooked via action sejoli/order/set-status/refunded, priority 1999
+	 */
+	public function set_cancelled_earning( array $order_data ) {
+
+		$order_id = $order_data['ID'];
+
+		sejoli_jv_update_earning_status( $order_id, 'cancelled' );
 	}
 
 }

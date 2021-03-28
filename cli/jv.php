@@ -197,4 +197,28 @@ class JV {
 
     }
 
+    /**
+     * Update earning status
+     *
+     * <order_id>
+     * : The order id
+     *
+     * [--status=<status>]
+     * : Earning status
+     *
+     *  wp sejolisa jv update_status 6036
+     *
+     * @when after_wp_load
+     */
+    public function update_status( array $args, array $assoc_args ) {
+
+        list( $order_id ) = $args;
+
+        $args = wp_parse_args( $assoc_args, array(
+                    'status' => 'added'
+                ));
+
+        __debug( sejoli_jv_update_earning_status( $order_id, $args['status'] ) );
+    }
+
 }

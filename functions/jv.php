@@ -164,3 +164,21 @@ function sejoli_jv_get_single_user_data( int $user_id, array $args, array $table
     return $response;
 
 }
+
+/**
+ * Update earning status
+ * @since   1.0.0
+ * @param   int     $order_id
+ * @param   string  $status
+ * @return  array
+ */
+function sejoli_jv_update_earning_status( int $order_id, string $status ) {
+
+    $response = SejoliJV\Model\JV::reset()
+                    ->set_order_id( $order_id )
+                    ->set_status( $status )
+                    ->update_status()
+                    ->respond();
+
+    return $response;
+}

@@ -76,7 +76,6 @@ Class JV extends \SejoliJV\Model
         return new static;
     }
 
-
     /**
      * Reset properties
      * @since   1.5.4
@@ -103,11 +102,11 @@ Class JV extends \SejoliJV\Model
      */
     static protected function validate() {
 
-        if(in_array(self::$action, ['add-earning'])) :
+        if(in_array(self::$action, ['add-earning', 'update-status'])) :
 
             if(0 === self::$order_id) :
                 self::set_valid(false);
-                self::set_message( __('Order tidak valid', 'sejoli'));
+                self::set_message( __('Order tidak valid', 'sejoli-jv'));
             endif;
 
         endif;
@@ -116,7 +115,7 @@ Class JV extends \SejoliJV\Model
 
             if(empty(self::$expend_id)) :
                 self::set_valid(false);
-                self::set_message( __('Expend ID tidak valid', 'sejoli'));
+                self::set_message( __('Expend ID tidak valid', 'sejoli-jv'));
             endif;
 
         endif;
@@ -125,26 +124,29 @@ Class JV extends \SejoliJV\Model
 
             if(!is_a(self::$user, 'WP_User')) :
                 self::set_valid(false);
-                self::set_message( __('Affiliasi tidak valid', 'sejoli'));
+                self::set_message( __('Affiliasi tidak valid', 'sejoli-jv'));
             endif;
 
             if(!is_a(self::$product, 'WP_Post') || 'sejoli-product' !== self::$product->post_type) :
                 self::set_valid(false);
-                self::set_message( __('Produk tidak valid', 'sejoli'));
+                self::set_message( __('Produk tidak valid', 'sejoli-jv'));
             endif;
 
             if(0 === self::$value) :
                 self::set_valid(false);
-                self::set_message( __('Nilai tidak boleh 0', 'sejoli'));
-            endif;
-
-            if(!in_array(self::$status, ['pending', 'added', 'cancelled'])) :
-                self::set_valid(false);
-                self::set_message( sprintf(__('Status nilai %s tidak valid', 'sejoli'), self::$status));
+                self::set_message( __('Nilai tidak boleh 0', 'sejoli-jv'));
             endif;
 
         endif;
 
+        if( in_array(self::$action, array('add-earning', 'update-status')) ) :
+
+            if(!in_array(self::$status, ['pending', 'added', 'cancelled'])) :
+                self::set_valid(false);
+                self::set_message( sprintf(__('Status nilai %s tidak valid', 'sejoli-jv'), self::$status));
+            endif;
+
+        endif;
     }
 
     /**
@@ -217,7 +219,7 @@ Class JV extends \SejoliJV\Model
             parent::$table = self::$table;
 
             Capsule::table(self::table())
-                ->whereIn('ID', self::$ids)
+                ->where('order_id', self::$order_id)
                 ->update([
                     'updated_at' => current_time('mysql'),
                     'status'     => self::$status
@@ -226,8 +228,8 @@ Class JV extends \SejoliJV\Model
             self::set_valid(true);
             self::set_message(
                 sprintf(
-                    __('Commission %s status updated to %s successfully', 'sejoli'),
-                    implode(", ", self::$ids),
+                    __('JV earning %s status updated to %s successfully', 'sejoli-jv'),
+                    self::$order_id,
                     self::$status
                 ),
                 'success');
@@ -355,7 +357,7 @@ Class JV extends \SejoliJV\Model
         else :
 
             self::set_valid(false);
-            self::set_message( __('No JV data', 'sejoli'));
+            self::set_message( __('No JV data', 'sejoli-jv'));
 
         endif;
 
@@ -388,7 +390,7 @@ Class JV extends \SejoliJV\Model
         else :
 
             self::set_valid(false);
-            self::set_message( __('No JV data', 'sejoli'));
+            self::set_message( __('No JV data', 'sejoli-jv'));
 
         endif;
 
