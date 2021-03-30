@@ -182,3 +182,74 @@ function sejoli_jv_update_earning_status( int $order_id, string $status ) {
 
     return $response;
 }
+
+/**
+ * Get all JV-related orders
+ * @since   1.0.0
+ * @param  array  $args
+ * @param  array  $table
+ * @return array
+ * - valid      bool
+ * - order      array
+ * - messages   array
+ */
+function sejoli_jv_get_orders( array $args, $table = array() ) {
+
+    $args = wp_parse_args($args,[
+        'product_id'      => NULL,
+        'user_id'         => NULL,
+        'affiliate_id'    => NULL,
+        'coupon_id'       => NULL,
+        'payment_gateway' => NULL,
+        'status'          => NULL,
+        'type'            => NULL
+    ]);
+
+    $table = wp_parse_args($table, [
+        'start'   => NULL,
+        'length'  => NULL,
+        'order'   => NULL,
+        'filter'  => NULL
+    ]);
+
+    if(isset($args['date-range']) && !empty($args['date-range'])) :
+        $table['filter']['date-range'] = $args['date-range'];
+        unset($args['date-range']);
+    endif;
+
+    $query = SejoliJV\Model\JV::reset()
+                ->set_filter_from_array($args)
+                ->set_data_start($table['start']);
+
+    if(isset($table['filter']['date-range']) && !empty($table['filter']['date-range'])) :
+        list($start, $end) = explode(' - ', $table['filter']['date-range']);
+        $query = $query->set_filter('created_at', $start.' 00:00:00', '>=')
+                    ->set_filter('created_at', $end.' 23:59:59', '<=');
+    endif;
+
+    if(0 < $table['length']) :
+        $query->set_data_length($table['length']);
+    endif;
+
+    if(!is_null($table['order']) && is_array($table['order'])) :
+        foreach($table['order'] as $order) :
+            $query->set_data_order($order['column'], $order['sort']);
+        endforeach;
+    endif;
+
+    $respond = $query->set_user_id( get_current_user_id() )
+                    ->get_orders()
+                    ->respond();
+
+    foreach($respond['orders'] as $i => $order) :
+        $respond['orders'][$i]->product   = sejolisa_get_product( intval($order->product_id) );
+        $respond['orders'][$i]->meta_data = apply_filters('sejoli/order/table/meta-data', maybe_unserialize($order->meta_data), $respond['orders'][$i]);
+    endforeach;
+
+    return wp_parse_args($respond,[
+        'valid'    => false,
+        'orders'   => NULL,
+        'messages' => []
+    ]);
+
+}
