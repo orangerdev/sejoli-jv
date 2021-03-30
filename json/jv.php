@@ -23,13 +23,17 @@ Class JV extends \Sejoli_JV\JSON
 
 
         if( 0 === count($jv_products)) :
+
             return -999;
+
         else :
-            if( in_array($product_request, $jv_products)) :
-                return $product_request;
+
+            if( in_array($product_requested, $jv_products)) :
+                return $product_requested;
             else :
                 return $jv_products;
             endif;
+            
         endif;
 
         return -999;
@@ -116,7 +120,7 @@ Class JV extends \Sejoli_JV\JSON
 
             $table['filter']['product_id'] = $this->set_products( $table['filter']['product_id']);
 
-    		$respond = sejolisa_get_orders($table['filter'], $table);
+    		$respond = sejoli_jv_get_orders($table['filter'], $table);
 
     		if(false !== $respond['valid']) :
     			$data = $respond['orders'];
