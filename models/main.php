@@ -268,6 +268,12 @@ Class Model
 
             foreach ( self::$filter['search'] as $key => $value ) :
 
+                if( 'product_id' === $value['name'] ) :
+                    $value['name'] = 'JV.product_id';
+                elseif( 'created_at' === $value['name'] ) :
+                    $value['name'] = 'JV.created_at';
+                endif;
+
                 if ( !empty( $value['val'] ) ) :
 
                     if(is_array($value['val'])) :
