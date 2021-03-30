@@ -61,14 +61,14 @@ class Member {
                                 'icon'    => 'users icon',
                                 'class'   => 'item',
                                 'submenu' => array(
-                                    // 'point' => array(
-                                    //     'link'    => site_url('member-area/jv-earning'),
-                                    //     'label'   => __('Pendapatan', 'sejoli'),
-                                    //     'icon'    => '',
-                                    //     'class'   => 'item',
-                                    //     'submenu' => array()
-                                    // ),
-                                    'reward' => array(
+                                    'jv-earning' => array(
+                                        'link'    => site_url('member-area/jv-earning'),
+                                        'label'   => __('Mutasi', 'sejoli'),
+                                        'icon'    => '',
+                                        'class'   => 'item',
+                                        'submenu' => array()
+                                    ),
+                                    'jv-order' => array(
                                         'link'    => site_url('member-area/jv-order'),
                                         'label'   => __('Order ', 'sejoli'),
                                         'icon'    => '',
