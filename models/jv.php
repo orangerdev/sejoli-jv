@@ -159,8 +159,8 @@ Class JV extends \SejoliJV\Model
 
         parent::$table = self::$table;
 
-        $query        = Capsule::table( Capsule::raw( self::table() . ' AS jv value' ) )
-                            ->select( Capsule::raw('jv value.*, user.display_name AS affiliate_name, product.post_title AS product_name') )
+        $query        = Capsule::table( Capsule::raw( self::table() . ' AS JV' ) )
+                            ->select( Capsule::raw('JV.*, user.display_name AS affiliate_name, product.post_title AS product_name') )
                             ->join( $wpdb->posts . ' AS product', 'product.ID', '=', 'jv value.product_id')
                             ->join( $wpdb->users . ' AS user', 'user.ID', '=', 'jv value.user_id');
 
@@ -191,8 +191,8 @@ Class JV extends \SejoliJV\Model
     static function first() {
         parent::$table = self::$table;
 
-        $data = Capsule::table(self::$table())
-                    ->whereIn('ID', self::$ids)
+        $data = Capsule::table( Capsule::raw( self::table() . ' AS JV' ) )
+                    ->whereIn('JV.ID', self::$ids)
                     ->first();
 
         if( $data ) :
@@ -318,9 +318,9 @@ Class JV extends \SejoliJV\Model
 
         parent::$table = self::$table;
 
-        $query  = Capsule::table( Capsule::raw( self::table() . ' AS earning' ))
+        $query  = Capsule::table( Capsule::raw( self::table() . ' AS JV' ))
                     ->select(
-                        'earning.user_id',
+                        'JV.user_id',
                         'user.display_name',
                         'user.user_email',
                         Capsule::raw(
@@ -339,7 +339,7 @@ Class JV extends \SejoliJV\Model
                         )
                     )
                     ->join(
-                        $wpdb->users . ' AS user', 'user.ID', '=', 'earning.user_id'
+                        $wpdb->users . ' AS user', 'user.ID', '=', 'JV.user_id'
                     )
                     ->where('status', 'added')
                     ->orderBy('total_value', 'DESC')
@@ -374,7 +374,7 @@ Class JV extends \SejoliJV\Model
 
         parent::$table = self::$table;
 
-        $query  = Capsule::table( self::table())
+        $query  = Capsule::table( Capsule::raw( self::table() . ' AS JV ') )
                     ->where('status', 'added')
                     ->where('user_id', self::$user_id);
 
@@ -392,6 +392,48 @@ Class JV extends \SejoliJV\Model
             self::set_valid(false);
             self::set_message( __('No JV data', 'sejoli-jv'));
 
+        endif;
+
+        return new static;
+    }
+
+    /**
+     * Get all JV related orders
+     * @since   1.0.0
+     */
+    static public function get_orders() {
+
+        global $wpdb;
+
+        parent::$table = self::$table;
+
+        $query        = Capsule::table( Capsule::raw( self::table() . ' AS JV ') )
+                        ->select(
+                            Capsule::raw('data_order.*, user.display_name AS user_name, user.user_email AS user_email , product.post_title AS product_name, coupon.code AS coupon_code, affiliate.display_name AS affiliate_name, JV.value AS earning')
+                        )
+                        ->join( Capsule::raw( $wpdb->prefix . 'sejolisa_orders AS data_order'), 'data_order.ID', '=', 'JV.order_id')
+                        ->join( Capsule::raw( $wpdb->users . ' AS user '), 'user.ID', '=', 'data_order.user_id')
+                        ->join( Capsule::raw( $wpdb->posts . ' AS product '), 'product.ID', '=', 'data_order.product_id')
+                        ->leftJoin( Capsule::raw( $wpdb->prefix . 'sejolisa_coupons AS coupon'), 'coupon.ID', '=', 'data_order.coupon_id')
+                        ->leftJoin( Capsule::raw( $wpdb->users . ' AS affiliate'), 'affiliate.ID', '=', 'data_order.affiliate_id')
+                        ->where('JV.user_id', self::$user_id);
+
+        $query        = self::set_filter_query( $query );
+        $recordsTotal = $query->count();
+
+        $query        = self::set_length_query($query);
+        $orders       = $query->get()->toArray();
+
+        if ( $orders ) :
+            self::set_respond('valid',true);
+            self::set_respond('orders',$orders);
+            self::set_respond('recordsTotal',$recordsTotal);
+            self::set_respond('recordsFiltered',$recordsTotal);
+        else:
+            self::set_respond('valid', false);
+            self::set_respond('orders', []);
+            self::set_respond('recordsTotal', 0);
+            self::set_respond('recordsFiltered', 0);
         endif;
 
         return new static;
