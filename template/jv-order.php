@@ -14,6 +14,7 @@
             <th><?php _e('Detil',       'sejoli'); ?></th>
             <th><?php _e('Pembeli',     'sejoli'); ?></th>
             <th><?php _e('Total',       'sejoli'); ?></th>
+            <th><?php _e('Pendapatan',  'sejoli'); ?></th>
             <th><?php _e('Status',      'sejoli'); ?></th>
         </tr>
     </thead>
@@ -27,6 +28,7 @@
             <th><?php _e('Detil',       'sejoli'); ?></th>
             <th><?php _e('Pembeli',     'sejoli'); ?></th>
             <th><?php _e('Total',       'sejoli'); ?></th>
+            <th><?php _e('Pendapatan',  'sejoli'); ?></th>
             <th><?php _e('Status',      'sejoli'); ?></th>
         </tr>
     </tfoot>
@@ -98,7 +100,7 @@ let sejoli_table;
 			],
 			columnDefs: [
 				{
-					targets: [1, 2, 3],
+					targets: [1, 2, 3, 4],
 					orderable: false
 				},
 				{
@@ -137,6 +139,14 @@ let sejoli_table;
 					}
 				},{
 					targets: 3,
+					width: '15%',
+					data : 'earning',
+					className : 'price',
+					render : function(data, type, full) {
+						return sejoli_member_area.text.currency + sejoli.formatPrice(data)
+					}
+				},{
+					targets:4,
 					data : 'status',
 					width: '100px',
 					render : function( data, type, full ) {
