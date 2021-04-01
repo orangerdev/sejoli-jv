@@ -94,14 +94,21 @@ let sejoli_table;
                     targets: 1,
                     data:    'note'
                 },{
+                    targets: 2,
+                    width:   '80px',
+                    data:    'type',
+                    render : function(data, type, full) {
+                        if( 'in' === data ) {
+                            return '<span class="ui blue label">Debit</span>';
+                        } else {
+                            return '<span class="ui red label">Kredit</span>';
+                        }
+                    }
+                },{
                     targets:   3,
                     width:     '120px',
                     data:      'value',
                     className: 'price'
-                },{
-                    targets: 2,
-                    width:   '80px',
-                    data:    'type'
                 }
             ],
             'footerCallback' : function( row, data, start, end, display ) {
