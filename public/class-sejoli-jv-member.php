@@ -86,7 +86,7 @@ class Member {
 	 */
 	public function set_jv_products() {
 
-		if(current_user_can('manage_sejoli_jv_data')) :
+		if(current_user_can('manage_sejoli_jv_data') || current_user_can('manage_options')) :
 
 			$this->products = (array) get_user_meta( get_current_user_id(), 'sejoli_jv_data', true);
 
@@ -243,7 +243,11 @@ class Member {
 
             if('jv-earning' === $view_request) :
 
-                return SEJOLI_JV_DIR . 'template/jv-earning.php';
+				if( 0 < count($this->products)) :
+                	return SEJOLI_JV_DIR . 'template/jv-earning.php';
+				else :
+	                return SEJOLI_JV_DIR . 'template/no-jv-product.php';
+	            endif;
 
             elseif('jv-order' === $view_request) :
 
