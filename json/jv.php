@@ -33,7 +33,7 @@ Class JV extends \Sejoli_JV\JSON
             else :
                 return $jv_products;
             endif;
-            
+
         endif;
 
         return -999;
@@ -375,12 +375,16 @@ Class JV extends \Sejoli_JV\JSON
         if(
             current_user_can('manage_sejoli_jv_data') &&
             isset($_POST['nonce']) &&
-            wp_verify_nonce($_POST['nonce'], 'sejoli-render-jv-single-table') &&
-            !empty($_POST['user'])
+            wp_verify_nonce($_POST['nonce'], 'sejoli-render-jv-single-table')
         ) :
 
             $jv_products = array();
-            $user_id     = intval($_POST['user']);
+
+            $user_id     = (
+                                !current_user_can('manage_options') ||
+                                !isset($_POST['user'])
+                           ) ? get_current_user_id() :intval($_POST['user']);
+
     		$respond     = sejoli_jv_get_single_user_data( $user_id, $table['filter'], $table);
 
     		if(false !== $respond['valid']) :
@@ -402,6 +406,7 @@ Class JV extends \Sejoli_JV\JSON
 
 
                         $data[$i]['note'] = sprintf( __('Penjualan produk %s dari INV %s', 'sejoli-jv'), $product_name, $jv->order_id);
+
                     else :
 
                         $meta_data        = maybe_unserialize( $jv->meta_data );
@@ -409,8 +414,9 @@ Class JV extends \Sejoli_JV\JSON
 
                     endif;
 
-                    $data[$i]['date']  = date('Y M d', strtotime($jv->created_at));
-                    $data[$i]['value'] = sejolisa_price_format( $jv->value );
+                    $data[$i]['created_at']  = date('Y M d', strtotime($jv->created_at));
+                    $data[$i]['value']       = sejolisa_price_format( $jv->value );
+                    $data[$i]['raw_value']   = floatval($jv->value);
 
                 endforeach;
 

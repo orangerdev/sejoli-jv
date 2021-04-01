@@ -158,6 +158,12 @@ function sejoli_jv_get_single_user_data( int $user_id, array $args, array $table
                     ->set_filter('created_at', $end.' 23:59:59', '<=');
     endif;
 
+    if(!is_null($table['order']) && is_array($table['order'])) :
+        foreach($table['order'] as $order) :
+            $query->set_data_order($order['column'], $order['sort']);
+        endforeach;
+    endif;
+
     $response = $query->get_single_user()
                     ->respond();
 

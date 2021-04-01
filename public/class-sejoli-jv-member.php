@@ -112,12 +112,26 @@ class Member {
 
 				'nonce'	=> wp_create_nonce('sejoli-jv-set-for-table')
             ),
+			'earning' => array(
+                'link' => add_query_arg(array(
+                    'action'    => 'sejoli-jv-user-earning-table',
+                ), admin_url('admin-ajax.php')),
+
+				'nonce'	=> wp_create_nonce('sejoli-render-jv-single-table')
+            ),
 			'export_prepare' => array(
 				'link'	=> add_query_arg(array(
 						'action' => 'sejoli-jv-order-export-prepare'
 				), admin_url('admin-ajax.php')),
 
 				'nonce' => wp_create_nonce('sejoli-jv-order-export-prepare')
+			),
+			'export_earning_prepare' => array(
+				'link'	=> add_query_arg(array(
+						'action' => 'sejoli-jv-order-export-earning-prepare'
+				), admin_url('admin-ajax.php')),
+
+				'nonce' => wp_create_nonce('sejoli-jv-order-export-earning-prepare')
 			),
 			'products' => $this->products
         ));

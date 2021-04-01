@@ -162,7 +162,8 @@ Class JV extends \SejoliJV\Model
         $query        = Capsule::table( Capsule::raw( self::table() . ' AS JV' ) )
                             ->select( Capsule::raw('JV.*, user.display_name AS affiliate_name, product.post_title AS product_name') )
                             ->join( $wpdb->posts . ' AS product', 'product.ID', '=', 'jv value.product_id')
-                            ->join( $wpdb->users . ' AS user', 'user.ID', '=', 'jv value.user_id');
+                            ->join( $wpdb->users . ' AS user', 'user.ID', '=', 'jv value.user_id')
+                            ->where('JV.deleted_at', '=', '0000-00-00 00:00:00');
 
         $query        = self::set_filter_query( $query );
         $recordsTotal = $query->count();
@@ -342,6 +343,7 @@ Class JV extends \SejoliJV\Model
                         $wpdb->users . ' AS user', 'user.ID', '=', 'JV.user_id'
                     )
                     ->where('status', 'added')
+                    ->where('JV.deleted_at', '=', '0000-00-00 00:00:00')
                     ->orderBy('total_value', 'DESC')
                     ->groupBy('user_id');
 
@@ -376,9 +378,11 @@ Class JV extends \SejoliJV\Model
 
         $query  = Capsule::table( Capsule::raw( self::table() . ' AS JV ') )
                     ->where('status', 'added')
-                    ->where('user_id', self::$user_id);
+                    ->where('user_id', self::$user_id)
+                    ->where('JV.deleted_at', '=', '0000-00-00 00:00:00');;
 
         $query  = self::set_filter_query( $query );
+        $query  = self::set_length_query( $query );
 
         $result = $query->get();
 
@@ -416,12 +420,15 @@ Class JV extends \SejoliJV\Model
                         ->join( Capsule::raw( $wpdb->posts . ' AS product '), 'product.ID', '=', 'data_order.product_id')
                         ->leftJoin( Capsule::raw( $wpdb->prefix . 'sejolisa_coupons AS coupon'), 'coupon.ID', '=', 'data_order.coupon_id')
                         ->leftJoin( Capsule::raw( $wpdb->users . ' AS affiliate'), 'affiliate.ID', '=', 'data_order.affiliate_id')
-                        ->where('JV.user_id', self::$user_id);
+                        ->where('JV.user_id', self::$user_id)
+                        ->where( 'JV.deleted_at', '=', '0000-00-00 00:00:00');
 
         $query        = self::set_filter_query( $query );
+
         $recordsTotal = $query->count();
 
         $query        = self::set_length_query($query);
+
         $orders       = $query->get()->toArray();
 
         if ( $orders ) :
