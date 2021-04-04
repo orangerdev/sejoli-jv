@@ -41,10 +41,8 @@
                 </tbody>
                 <tfoot>
                     <tr>
-                        <th><?php _e('Tanggal', 'sejoli-jv'); ?></th>
-                        <th><?php _e('Detil', 'sejoli-jv'); ?></th>
-                        <th><?php _e('Tipe', 'sejoli-jv'); ?></th>
-                        <th><?php _e('Nilai', 'sejoli-jv'); ?></th>
+                        <th colspan=3><?php _e('Total', 'sejoli-jv'); ?></th>
+                        <th>Rp 0</th>
                     </tr>
                 </tfoot>
             </table>
@@ -129,7 +127,23 @@ let sejoli_table;
                     data:      'value',
                     className: 'price'
                 }
-            ]
+            ],
+            'footerCallback' : function( row, data, start, end, display ) {
+                var api  = this.api(),
+                    data,
+                    value = 0.0;
+
+                $.each( data, function(i, e){
+                    if( 'in' === e.type )
+                    { value += parseFloat( e.raw_value ); }
+                    else
+                    { value -= parseFloat( e.raw_value ); }
+                });
+
+                $( api.column(3).footer() ).html(
+                    sejoli_admin.text.currency + sejoli.helper.formatPrice( value )
+                );
+            }
         });
 
         sejoli_table.on('preXhr',function(){
