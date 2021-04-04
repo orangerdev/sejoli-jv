@@ -526,4 +526,46 @@ Class JV extends \Sejoli_JV\JSON
         wp_send_json( $response );
         exit;
     }
+
+    /**
+     * Delete expenditure data
+     * @since   1.0.0
+     * @return  json
+     */
+    public function delete_expenditure() {
+
+        $response = array(
+            'valid'   => false,
+            'message' => __('Anda tidak diizinkan untuk melakukan proses ini', 'sejoli-jv')
+        );
+
+        $post = wp_parse_args( $_POST, array(
+            'expend_id' => NULL,
+            'nonce'     => NULL
+        ));
+
+        if(
+            wp_verify_nonce( $post['nonce'], 'sejoli-jv-delete-expenditure') &&
+            (
+                current_user_can('manage_options') ||
+                current_user_can('manage_sejoli_jv_data')
+            )
+        ) :
+            $valid = true;
+
+            $delete_respond = sejoli_jv_delete_expend_data( intval($post['expend_id']) );
+
+            if( $delete_respond['valid' ])  :
+                $response['message'] = implode('<br />', $delete_respond['messages']['success'] );
+            else :
+                $valid = false;
+                $response['message'] = implode('<br />', $delete_respond['messages']['error'] );
+            endif;
+
+            $response['valid'] = $valid;
+        endif;
+
+        echo wp_send_json($response);
+        exit;
+    }
 }

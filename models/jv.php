@@ -111,7 +111,7 @@ Class JV extends \SejoliJV\Model
 
         endif;
 
-        if(in_array(self::$action, array('add-expend'))) :
+        if(in_array(self::$action, array('add-expend', 'delete-expend'))) :
 
             if(empty(self::$expend_id)) :
                 self::set_valid(false);
@@ -303,6 +303,40 @@ Class JV extends \SejoliJV\Model
 
             self::set_valid     (true);
             self::set_respond   ('expend', $expend);
+
+        endif;
+
+        return new static;
+    }
+
+    /**
+     * delete JV expend
+     * @since   1.0.0
+     */
+    static public function delete_expend() {
+
+        self::set_action('delete-expend');
+        self::validate();
+
+        if(true === self::$valid) :
+
+            parent::$table = self::$table;
+
+            Capsule::table(self::table())
+                ->where('expend_id', self::$expend_id)
+                ->update([
+                    'deleted_at' => current_time('mysql'),
+                    'status'     => 'cancelled'
+                ]);
+
+            self::set_valid(true);
+            self::set_message(
+                sprintf(
+                    __('JV expend %s deleted successfully', 'sejoli-jv'),
+                    self::$expend_id,
+                    self::$status
+                ),
+                'success');
 
         endif;
 

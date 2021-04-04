@@ -20,7 +20,7 @@
     </thead>
     <tbody>
         <tr>
-            <td colspan="4">Tidak ada data yang bisa ditampilkan</td>
+            <td colspan="5">Tidak ada data yang bisa ditampilkan</td>
         </tr>
     </tbody>
     <tfoot>

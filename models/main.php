@@ -272,6 +272,10 @@ Class Model
                     $value['name'] = 'JV.product_id';
                 elseif( 'created_at' === $value['name'] ) :
                     $value['name'] = 'JV.created_at';
+                elseif( 'type' === $value['name'] ) :
+                    $value['name'] = 'data_order.type';
+                elseif( 'status' === $value['name'] ) :
+                    $value['name'] = 'data_order.status';
                 endif;
 
                 if ( !empty( $value['val'] ) ) :

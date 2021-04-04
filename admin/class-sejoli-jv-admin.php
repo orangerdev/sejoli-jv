@@ -206,7 +206,15 @@ class Admin {
 						'action' => 'sejoli-jv-add-data'
 					), admin_url('admin-ajax.php')
 				)
-			)
+			),
+			'delete_expenditure' => array(
+				'ajaxurl'	=> add_query_arg(array(
+						'action' => 'sejoli-jv-delete-expenditure'
+					), admin_url('admin-ajax.php')
+				),
+				'nonce'   => wp_create_nonce('sejoli-jv-delete-expenditure'),
+				'confirm' => __('Anda yakin akan menghapus pengeluaran ini? Hal ini juga akan berimbas ke JV lain dengan produk yang sama', 'sejoli-jv')
+			),
 		);
 
 		return $js_vars;

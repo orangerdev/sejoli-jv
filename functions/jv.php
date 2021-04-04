@@ -80,6 +80,23 @@ function sejoli_jv_add_expend_data( array $args ) {
 }
 
 /**
+ * Delete expenditure data
+ * @since   1.0.0
+ * @param   integer  $expend_id
+ * @return  array
+ */
+function sejoli_jv_delete_expend_data( int $expend_id ) {
+
+    $response = SejoliJV\Model\JV::reset()
+                    ->set_expend( $expend_id )
+                    ->delete_expend()
+                    ->respond();
+
+    return $response;
+
+}
+
+/**
  * Get all JV earning data
  * @since   1.0.0
  * @param   array   $args

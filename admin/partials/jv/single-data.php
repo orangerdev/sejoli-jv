@@ -33,8 +33,8 @@
                     <tr>
                         <th><?php _e('Tanggal', 'sejoli-jv'); ?></th>
                         <th><?php _e('Detil', 'sejoli-jv'); ?></th>
-                        <th><?php _e('Nilai', 'sejoli-jv'); ?></th>
                         <th><?php _e('Tipe', 'sejoli-jv'); ?></th>
+                        <th><?php _e('Nilai', 'sejoli-jv'); ?></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -43,8 +43,8 @@
                     <tr>
                         <th><?php _e('Tanggal', 'sejoli-jv'); ?></th>
                         <th><?php _e('Detil', 'sejoli-jv'); ?></th>
-                        <th><?php _e('Nilai', 'sejoli-jv'); ?></th>
                         <th><?php _e('Tipe', 'sejoli-jv'); ?></th>
+                        <th><?php _e('Nilai', 'sejoli-jv'); ?></th>
                     </tr>
                 </tfoot>
             </table>
@@ -102,19 +102,32 @@ let sejoli_table;
                 },{
                     targets: 0,
                     width:   '120px',
-                    data:    'date'
+                    data:    'created_at'
                 },{
                     targets: 1,
-                    data:    'note'
+                    data:    'note',
+                    render:  function(data, type, full) {
+                        if( 'out' === full.type )
+                        { return data + '&nbsp;&nbsp;&nbsp;<button type="button" class="ui mini button yellow sejoli-jv-delete-expenditure" data-id="' + full.expend_id + '">hapus</button>'; }
+
+                        return data;
+                    }
                 },{
-                    targets:   2,
+                    targets: 2,
+                    width:   '80px',
+                    data:    'type',
+                    render : function(data, type, full) {
+                        if( 'in' === data ) {
+                            return '<span class="ui blue label">Debit</span>';
+                        } else {
+                            return '<span class="ui red label">Kredit</span>';
+                        }
+                    }
+                },{
+                    targets:   3,
                     width:     '120px',
                     data:      'value',
                     className: 'price'
-                },{
-                    targets: 3,
-                    width:   '80px',
-                    data:    'type'
                 }
             ]
         });
@@ -141,6 +154,33 @@ let sejoli_table;
             sejoli.helper.filterData();
             sejoli_table.ajax.reload();
             $('.sejoli-form-filter-holder').hide();
+        });
+
+        $(document).on('click', '.sejoli-jv-delete-expenditure', function(){
+            let expend_id = $(this).data('id'),
+                confirmed = confirm(sejoli_admin.jv.delete_expenditure.confirm);
+
+            if(confirmed) {
+                $.ajax({
+                    url:    sejoli_admin.jv.delete_expenditure.ajaxurl,
+                    type:   'POST',
+                    data:   {
+                        expend_id:  expend_id,
+                        nonce:      sejoli_admin.jv.delete_expenditure.nonce
+                    },
+                    beforeSend: function() {
+                        sejoli.helper.blockUI('.sejoli-table-holder');
+                    },
+                    success:    function(response) {
+                        if( false === response.valid ) {
+                            alert(response.message);
+                        }
+                        sejoli_table.ajax.reload();
+                    }
+                });
+            }
+
+            return false;
         });
 
     });
