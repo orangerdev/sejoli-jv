@@ -274,6 +274,54 @@ Class JV extends \Sejoli_JV\JSON
     }
 
     /**
+     * Prepare for multi earning export data
+     * Hooked via action wp_ajax_sejoli-jv-earning-export-prepare, priority 1
+     * @since   1.0.0
+     * @return  json
+     */
+    public function prepare_multi_earning_export() {
+
+        $response = [
+            'url'   => admin_url('/'),
+            'data'  => [],
+        ];
+
+        $post_data = wp_parse_args($_POST,[
+            'data'    => array(),
+            'nonce'   => NULL
+        ]);
+
+        if(
+            wp_verify_nonce($post_data['nonce'], 'sejoli-jv-multi-earning-export-prepare') &&
+            current_user_can('manage_options')
+        ) :
+
+            $request          = array();
+
+            foreach($post_data['data'] as $_data) :
+                if(!empty($_data['val'])) :
+                    $request[$_data['name']]    = $_data['val'];
+                endif;
+            endforeach;
+
+            $response['data'] = $request;
+            $response['url']  = wp_nonce_url(
+                                    add_query_arg(
+                                        $request,
+                                        site_url('/sejoli-ajax/sejoli-jv-multi-earning-export')
+                                    ),
+                                    'sejoli-jv-multi-earning-export',
+                                    'nonce'
+                                );
+
+        endif;
+
+        echo wp_send_json($response);
+        exit;
+
+    }
+
+    /**
      * Do JV order export
      * @since   1.0.0
      * @return  void
@@ -482,7 +530,81 @@ Class JV extends \Sejoli_JV\JSON
 			fclose($fp);
 
 		endif;
-        
+
+		exit;
+
+    }
+
+    /**
+     * Export multi earning order
+     * Hooked via action wp_ajax_sejoli-jv-multi-earning-table, priority 1
+     * @since   1.0.0
+     * @return  void
+     */
+    public function export_multi_earning() {
+
+        $post_data = wp_parse_args($_GET,[
+			'nonce'      => NULL,
+            'date-range' => NULL,
+		]);
+
+		if(
+            wp_verify_nonce($post_data['nonce'], 'sejoli-jv-multi-earning-export') &&
+            current_user_can('manage_options')
+        ) :
+
+			$filename = sprintf(
+                            'export-jv-multi-earning-%s-%s',
+                            strtoupper( sanitize_title( get_bloginfo('name') ) ),
+                            date('Y-m-d-H-i-s', current_time('timestamp') )
+                        );
+
+            $jv_products = array();
+
+            unset( $post_data['nonce'] );
+
+    		$respond = sejoli_jv_get_earning_data($post_data);
+
+            $csv_data = [];
+			$csv_data[0]	= array(
+                'user',
+                'sale',
+                'expenditure',
+                'earning'
+			);
+
+    		if(false !== $respond['valid']) :
+
+                $i = 1;
+
+                foreach( $respond['jv'] as $jv) :
+
+                    $csv_data[$i] = array(
+                        $jv->display_name,
+                        sejolisa_price_format( $jv->earning_value ),
+                        sejolisa_price_format( $jv->expenditure_value ),
+                        sejolisa_price_format( $jv->total_value )
+                    );
+
+                    $i++;
+
+                endforeach;
+
+    		endif;
+
+			header('Content-Type: text/csv');
+			header('Content-Disposition: attachment; filename="' . $filename . '.csv"');
+
+			$fp = fopen('php://output', 'wb');
+
+			foreach ($csv_data as $line) :
+			    fputcsv($fp, $line, ',');
+			endforeach;
+
+			fclose($fp);
+
+		endif;
+
 		exit;
 
     }

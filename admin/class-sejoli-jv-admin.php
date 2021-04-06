@@ -224,6 +224,14 @@ class Admin {
 
 				'nonce' => wp_create_nonce('sejoli-jv-earning-export-prepare')
 			),
+
+			'multi_earning_export_prepare' => array(
+				'link'	=> add_query_arg(array(
+						'action' => 'sejoli-jv-multi-earning-export-prepare'
+				), admin_url('admin-ajax.php')),
+
+				'nonce' => wp_create_nonce('sejoli-jv-multi-earning-export-prepare')
+			),
 		);
 
 		return $js_vars;

@@ -103,7 +103,7 @@ function sejoli_jv_delete_expend_data( int $expend_id ) {
  * @param   array   $table
  * @return  array
  */
-function sejoli_jv_get_earning_data( array $args, array $table) {
+function sejoli_jv_get_earning_data( array $args, $table = array()) {
 
     $args = wp_parse_args($args,[
         'product_id'    => NULL,

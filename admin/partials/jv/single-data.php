@@ -212,10 +212,10 @@ let sejoli_table;
                     data:  sejoli.var.search
                 },
                 beforeSend : function() {
-                    sejoli.helper.blockUI('#jv-orders');
+                    sejoli.helper.blockUI('#sejoli-jv');
                 },
                 success : function(response) {
-                    sejoli.helper.unblockUI('#jv-orders');
+                    sejoli.helper.unblockUI('#sejoli-jv');
                     window.location.href = response.url.replace(/&amp;/g, '&');
                 }
             });

@@ -142,6 +142,30 @@ let sejoli_table;
             $('.sejoli-form-filter-holder').hide();
         });
 
+        // do export csv
+        $(document).on('click', '.export-csv', function(){
+
+            sejoli.helper.filterData();
+
+            $.ajax({
+                url:      sejoli_admin.jv.multi_earning_export_prepare.link,
+                type:     'POST',
+                dataType: 'json',
+                data:     {
+                    nonce: sejoli_admin.jv.multi_earning_export_prepare.nonce,
+                    data:  sejoli.var.search
+                },
+                beforeSend : function() {
+                    sejoli.helper.blockUI('#sejoli-jv');
+                },
+                success : function(response) {
+                    sejoli.helper.unblockUI('#sejoli-jv');
+                    window.location.href = response.url.replace(/&amp;/g, '&');
+                }
+            });
+            return false;
+        });
+
     });
 })(jQuery);
 </script>
