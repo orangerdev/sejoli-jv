@@ -128,10 +128,10 @@ class Member {
 			),
 			'export_earning_prepare' => array(
 				'link'	=> add_query_arg(array(
-						'action' => 'sejoli-jv-order-export-earning-prepare'
+						'action' => 'sejoli-jv-earning-export-prepare'
 				), admin_url('admin-ajax.php')),
 
-				'nonce' => wp_create_nonce('sejoli-jv-order-export-earning-prepare')
+				'nonce' => wp_create_nonce('sejoli-jv-earning-export-prepare')
 			),
 			'products' => $this->products
         ));

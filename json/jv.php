@@ -351,11 +351,11 @@ Class JV extends \Sejoli_JV\JSON
 
 			unset($post_data['backend'], $post_data['nonce']);;
 
-			$response   = sejolisa_get_orders($post_data);
+			$response   = sejoli_jv_get_orders($post_data);
 
 			$csv_data = [];
 			$csv_data[0]	= array(
-				'INV', 'product', 'created_at', 'name', 'email', 'phone', 'price', 'status', 'affiliate', 'affiliate_id',
+				'INV', 'product', 'created_at', 'name', 'email', 'phone', 'price', 'earning', 'status', 'affiliate', 'affiliate_id',
 				'address', 'courier', 'variant',
 			);
 
@@ -423,6 +423,7 @@ Class JV extends \Sejoli_JV\JSON
 					$order->user_email,
 					get_user_meta($order->user_id, '_phone', true),
 					$order->grand_total,
+                    $order->earning,
 					$order->status,
 					$order->affiliate_id,
 					$order->affiliate_name,
@@ -487,7 +488,7 @@ Class JV extends \Sejoli_JV\JSON
 
             $post_data['product_id'] = $this->set_products( $post_data['product_id'] );
 
-			unset($post_data['backend'], $post_data['nonce']);
+			unset($post_data['backend'], $post_data['nonce'], $post_data['user_id']);
 
 			$response  = sejoli_jv_get_single_user_data( $user_id, $post_data);
 

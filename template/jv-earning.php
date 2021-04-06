@@ -148,6 +148,28 @@ let sejoli_table;
             $('#filter-form-wrap').modal('hide');
             sejoli_table.ajax.reload();
         });
+
+        // do export csv
+        $(document).on('click', '.export-csv', function(){
+
+            $.ajax({
+                url:      sejoli.jv.earning_export_prepare.link,
+                type:     'POST',
+                dataType: 'json',
+                data:     {
+                    nonce: sejoli.jv.earning_export_prepare.nonce,
+                    data:  sejoli.filter('#filter-form')
+                },
+                beforeSend : function() {
+                    sejoli.block('#jv-orders');
+                },
+                success : function(response) {
+                    sejoli.unblock('#jv-orders');
+                    window.location.href = response.url.replace(/&amp;/g, '&');
+                }
+            });
+            return false;
+        });
     });
 })(jQuery)
 </script>
