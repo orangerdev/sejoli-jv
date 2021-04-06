@@ -2,9 +2,9 @@
 Contributors: orangerdev
 Donate link: https://sejoli.co.id
 Tags: membership, commission, joint-venture
-Requires at least: 5.6.0
-Tested up to: 5.6.1
-Stable tag: 0.8.0
+Requires at least: 5.7.0
+Tested up to: 5.7.0
+Stable tag: 1.0.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -25,6 +25,10 @@ e.g.
 == Frequently Asked Questions ==
 
 == Changelog ==
+
+= 1.0.0 =
+6 April 2021
+* First public release
 
 = 0.8.0 =
 * First beta release
