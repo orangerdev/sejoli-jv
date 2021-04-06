@@ -263,6 +263,9 @@ class Sejoli_JV {
 		$this->loader->add_action( 'wp_ajax_sejoli-jv-order-export-prepare',	$jv, 'prepare_export');
 		$this->loader->add_action( 'sejoli_ajax_sejoli-jv-order-export',		$jv, 'export_order');
 
+		$this->loader->add_action( 'wp_ajax_sejoli-jv-earning-export-prepare',	$jv, 'prepare_earning_export');
+		$this->loader->add_action( 'sejoli_ajax_sejoli-jv-earning-export',		$jv, 'export_single_earning');
+
 		$this->loader->add_action( 'wp_ajax_sejoli-jv-earning-table',			$jv, 'set_for_earning_table');
 		$this->loader->add_action( 'wp_ajax_sejoli-jv-single-table',			$jv, 'set_for_single_table');
 		$this->loader->add_action( 'wp_ajax_sejoli-jv-add-data',				$jv, 'add_expenditure');

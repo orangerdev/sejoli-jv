@@ -40,6 +40,38 @@ Class JV extends \Sejoli_JV\JSON
     }
 
     /**
+     * Set JV note data
+     * @since   1.0.0
+     * @param   object   $jv [description]
+     */
+    protected function set_note( object $jv ) {
+
+        $note = '';
+
+        if( 'in' === $jv->type ) :
+
+            $product_name = '';
+            $product      = sejolisa_get_product($jv->product_id);
+
+            if( is_a($product, 'WP_Post') ) :
+                $product_name = $product->post_title;
+            else :
+                $product_name = 'ID '.$jv->product_id.' '. __('(telah dihapus)', 'sejoli');
+            endif;
+
+            $note = sprintf( __('Penjualan produk %s dari INV %s', 'sejoli-jv'), $product_name, $jv->order_id);
+
+        else :
+
+            $meta_data = maybe_unserialize( $jv->meta_data );
+            $note      = $meta_data['note'];
+
+        endif;
+
+        return $note;
+    }
+
+    /**
      * Set jv product detail for user data
      * Hooked via action sejoli_ajax_set-for-userdata, priority 1
      * @since 1.0.0
@@ -191,6 +223,57 @@ Class JV extends \Sejoli_JV\JSON
     }
 
     /**
+     * Prepare for earning export data
+     * Hooked via action wp_ajax_sejoli-jv-earning-export-prepare, priority 1
+     * @since   1.0.0
+     * @return  json
+     */
+    public function prepare_earning_export() {
+
+        $response = [
+            'url'   => admin_url('/'),
+            'data'  => [],
+        ];
+
+        $post_data = wp_parse_args($_POST,[
+            'data'    => array(),
+            'nonce'   => NULL
+        ]);
+
+        if(
+            wp_verify_nonce($post_data['nonce'], 'sejoli-jv-earning-export-prepare') &&
+            (
+                current_user_can('manage_sejoli_jv_data') ||
+                current_user_can('manage_options')
+            )
+        ) :
+
+            $request          = array();
+
+            foreach($post_data['data'] as $_data) :
+                if(!empty($_data['val'])) :
+                    $request[$_data['name']]    = $_data['val'];
+                endif;
+            endforeach;
+
+            $response['data'] = $request;
+            $response['url']  = wp_nonce_url(
+                                    add_query_arg(
+                                        $request,
+                                        site_url('/sejoli-ajax/sejoli-jv-earning-export')
+                                    ),
+                                    'sejoli-jv-earning-export',
+                                    'nonce'
+                                );
+
+        endif;
+
+        echo wp_send_json($response);
+        exit;
+
+    }
+
+    /**
      * Do JV order export
      * @since   1.0.0
      * @return  void
@@ -204,7 +287,10 @@ Class JV extends \Sejoli_JV\JSON
 
 		if(
             wp_verify_nonce($post_data['nonce'], 'sejoli-jv-order-export') &&
-            current_user_can('manage_sejoli_jv_data')
+            (
+                current_user_can('manage_sejoli_jv_data') ||
+                current_user_can('manage_options')
+            )
         ) :
 
 			$filename = 'export-jv-orders-' . strtoupper( sanitize_title( get_bloginfo('name') ) ) . '-' . date('Y-m-d-H-i-s', current_time('timestamp'));
@@ -316,6 +402,92 @@ Class JV extends \Sejoli_JV\JSON
     }
 
     /**
+     * Export single earning order
+     * Hooked via action sejoli_ajax_sejoli-jv-earning-export, priority 1
+     * @since   1.0.0
+     * @return  void
+     */
+    public function export_single_earning() {
+
+        $post_data = wp_parse_args($_GET,[
+			'nonce'      => NULL,
+			'backend'    => false,
+            'date-range' => NULL,
+            'user_id'    => 0
+		]);
+
+		if(
+            wp_verify_nonce($post_data['nonce'], 'sejoli-jv-earning-export') &&
+            (
+                current_user_can('manage_sejoli_jv_data') ||
+                current_user_can('manage_options')
+            )
+        ) :
+
+            $user_id = ( empty($user_id) || !current_user_can('manage_options') ) ? get_current_user_id() : $post_data['user_id'];
+
+			$filename = sprintf(
+                            'export-jv-earning-%s-%s-user-%s',
+                            strtoupper( sanitize_title( get_bloginfo('name') ) ),
+                            date('Y-m-d-H-i-s', current_time('timestamp') ),
+                            $user_id
+                        );
+
+            if(!isset($post_data['product_id'])) :
+                $post_data['product_id'] = 0;
+            endif;
+
+            $post_data['product_id'] = $this->set_products( $post_data['product_id'] );
+
+			unset($post_data['backend'], $post_data['nonce']);
+
+			$response  = sejoli_jv_get_single_user_data( $user_id, $post_data);
+
+			$csv_data = [];
+			$csv_data[0]	= array(
+                'date',
+                'note',
+                'value',
+                'raw_value',
+                'type'
+			);
+
+			$i = 1;
+
+			foreach($response['jv'] as $jv) :
+
+                $date = ('0000-00-00 00:00:00' === $jv->updated_at ) ? $jv->updated_at : $jv->created_at;
+
+                $csv_data[$i] = array(
+                    $date,
+                    $this->set_note( $jv ),
+                    sejolisa_price_format( $jv->value ),
+                    $jv->value,
+                    $jv->type
+                );
+
+				$i++;
+
+			endforeach;
+
+			header('Content-Type: text/csv');
+			header('Content-Disposition: attachment; filename="' . $filename . '.csv"');
+
+			$fp = fopen('php://output', 'wb');
+
+			foreach ($csv_data as $line) :
+			    fputcsv($fp, $line, ',');
+			endforeach;
+
+			fclose($fp);
+
+		endif;
+        
+		exit;
+
+    }
+
+    /**
      * Set for earning table
      * Hooked via action wp_ajax_sejoli-jv-earning-table, priority 1
      * @since 1.0.0
@@ -393,27 +565,7 @@ Class JV extends \Sejoli_JV\JSON
 
                     $data[$i] = (array) $jv;
 
-                    if( 'in' === $jv->type ) :
-
-                        $product_name = '';
-                        $product      = sejolisa_get_product($jv->product_id);
-
-                        if( is_a($product, 'WP_Post') ) :
-                            $product_name = $product->post_title;
-                        else :
-                            $product_name = 'ID '.$jv->product_id.' '. __('(telah dihapus)', 'sejoli');
-                        endif;
-
-
-                        $data[$i]['note'] = sprintf( __('Penjualan produk %s dari INV %s', 'sejoli-jv'), $product_name, $jv->order_id);
-
-                    else :
-
-                        $meta_data        = maybe_unserialize( $jv->meta_data );
-                        $data[$i]['note'] = $meta_data['note'];
-
-                    endif;
-
+                    $data[$i]['note']        = $this->set_note( $jv );
                     $data[$i]['created_at']  = date('Y M d', strtotime($jv->created_at));
                     $data[$i]['value']       = sejolisa_price_format( $jv->value );
                     $data[$i]['raw_value']   = floatval($jv->value);

@@ -207,6 +207,7 @@ class Admin {
 					), admin_url('admin-ajax.php')
 				)
 			),
+
 			'delete_expenditure' => array(
 				'ajaxurl'	=> add_query_arg(array(
 						'action' => 'sejoli-jv-delete-expenditure'
@@ -214,6 +215,14 @@ class Admin {
 				),
 				'nonce'   => wp_create_nonce('sejoli-jv-delete-expenditure'),
 				'confirm' => __('Anda yakin akan menghapus pengeluaran ini? Hal ini juga akan berimbas ke JV lain dengan produk yang sama', 'sejoli-jv')
+			),
+
+			'earning_export_prepare' => array(
+				'link'	=> add_query_arg(array(
+						'action' => 'sejoli-jv-earning-export-prepare'
+				), admin_url('admin-ajax.php')),
+
+				'nonce' => wp_create_nonce('sejoli-jv-earning-export-prepare')
 			),
 		);
 

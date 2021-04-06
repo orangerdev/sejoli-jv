@@ -146,7 +146,7 @@ function sejoli_jv_get_earning_data( array $args, array $table) {
  * @param   array       $table
  * @return  array
  */
-function sejoli_jv_get_single_user_data( int $user_id, array $args, array $table ) {
+function sejoli_jv_get_single_user_data( int $user_id, array $args, $table = array()) {
 
     $args = wp_parse_args($args,[
         'product_id'    => NULL,

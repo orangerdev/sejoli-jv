@@ -21,6 +21,7 @@
                 <div class="sejoli-form-filter-holder sejoli-form-float">
                     <select class="autosuggest filter" name="product_id"></select>
                     <input type="text" class='filter' name="date-range" value="<?php echo $date; ?>" placeholder="<?php _e('Pencarian berdasarkan tanggal', 'sejoli-jv'); ?>">
+                    <input type="hidden" class="filter" name="user_id" value='<?php echo $_GET['user_id']; ?>' />
                     <?php wp_nonce_field('search-jv', 'sejoli-nonce'); ?>
                     <button type="button" name="button" class='button button-primary do-search'><?php _e('Cari Data', 'sejoli-jv'); ?></button>
                     <!-- <button type="button" name="button" class='button button-primary reset-search'><?php _e('Reset Pencarian', 'sejoli-jv'); ?></button> -->
@@ -194,6 +195,30 @@ let sejoli_table;
                 });
             }
 
+            return false;
+        });
+
+        // do export csv
+        $(document).on('click', '.export-csv', function(){
+
+            sejoli.helper.filterData();
+
+            $.ajax({
+                url:      sejoli_admin.jv.earning_export_prepare.link,
+                type:     'POST',
+                dataType: 'json',
+                data:     {
+                    nonce: sejoli_admin.jv.earning_export_prepare.nonce,
+                    data:  sejoli.var.search
+                },
+                beforeSend : function() {
+                    sejoli.helper.blockUI('#jv-orders');
+                },
+                success : function(response) {
+                    sejoli.helper.unblockUI('#jv-orders');
+                    window.location.href = response.url.replace(/&amp;/g, '&');
+                }
+            });
             return false;
         });
 
