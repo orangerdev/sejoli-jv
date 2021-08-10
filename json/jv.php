@@ -622,7 +622,6 @@ Class JV extends \Sejoli_JV\JSON
 		$data    = [];
 
         if(
-            current_user_can('manage_sejoli_jv_data') &&
             isset($_POST['nonce']) &&
             wp_verify_nonce($_POST['nonce'], 'sejoli-render-jv-earning-table')
         ) :
@@ -668,7 +667,6 @@ Class JV extends \Sejoli_JV\JSON
 		$data    = [];
 
         if(
-            current_user_can('manage_sejoli_jv_data') &&
             isset($_POST['nonce']) &&
             wp_verify_nonce($_POST['nonce'], 'sejoli-render-jv-single-table')
         ) :
