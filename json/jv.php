@@ -136,7 +136,7 @@ Class JV extends \Sejoli_JV\JSON
 
         $table = $this->set_table_args($_POST);
 
-		$data    = [];
+        $data    = [];
 
         if(
             current_user_can('manage_sejoli_jv_data') &&
@@ -152,21 +152,21 @@ Class JV extends \Sejoli_JV\JSON
 
             $table['filter']['product_id'] = $this->set_products( $table['filter']['product_id']);
 
-    		$respond = sejoli_jv_get_orders($table['filter'], $table);
+            $respond = sejoli_jv_get_orders($table['filter'], $table);
 
-    		if(false !== $respond['valid']) :
-    			$data = $respond['orders'];
-    		endif;
+            if(false !== $respond['valid']) :
+                $data = $respond['orders'];
+            endif;
 
         endif;
 
-		echo wp_send_json([
-			'table'           => $table,
-			'draw'            => $table['draw'],
-			'data'            => $data,
-			'recordsTotal'    => count($data),
-			'recordsFiltered' => count($data)
-		]);
+        echo wp_send_json([
+            'table'           => $table,
+            'draw'            => $table['draw'],
+            'data'            => $data,
+            'recordsTotal'    => count($data),
+            'recordsFiltered' => count($data)
+        ]);
 
     }
 
@@ -329,11 +329,11 @@ Class JV extends \Sejoli_JV\JSON
     public function export_order() {
 
         $post_data = wp_parse_args($_GET,[
-			'nonce'   => NULL,
-			'backend' => false
-		]);
+            'nonce'   => NULL,
+            'backend' => false
+        ]);
 
-		if(
+        if(
             wp_verify_nonce($post_data['nonce'], 'sejoli-jv-order-export') &&
             (
                 current_user_can('manage_sejoli_jv_data') ||
@@ -341,7 +341,7 @@ Class JV extends \Sejoli_JV\JSON
             )
         ) :
 
-			$filename = 'export-jv-orders-' . strtoupper( sanitize_title( get_bloginfo('name') ) ) . '-' . date('Y-m-d-H-i-s', current_time('timestamp'));
+            $filename = 'export-jv-orders-' . strtoupper( sanitize_title( get_bloginfo('name') ) ) . '-' . date('Y-m-d-H-i-s', current_time('timestamp'));
 
             if(!isset($post_data['product_id'])) :
                 $post_data['product_id'] = 0;
@@ -349,104 +349,104 @@ Class JV extends \Sejoli_JV\JSON
 
             $post_data['product_id'] = $this->set_products( $post_data['product_id'] );
 
-			unset($post_data['backend'], $post_data['nonce']);;
+            unset($post_data['backend'], $post_data['nonce']);;
 
-			$response   = sejoli_jv_get_orders($post_data);
+            $response   = sejoli_jv_get_orders($post_data);
 
-			$csv_data = [];
-			$csv_data[0]	= array(
-				'INV', 'product', 'created_at', 'name', 'email', 'phone', 'price', 'earning', 'status', 'affiliate', 'affiliate_id',
-				'address', 'courier', 'variant',
-			);
+            $csv_data = [];
+            $csv_data[0]    = array(
+                'INV', 'product', 'created_at', 'name', 'email', 'phone', 'price', 'earning', 'status', 'affiliate', 'affiliate_id',
+                'address', 'courier', 'variant',
+            );
 
-			$i = 1;
-			foreach($response['orders'] as $order) :
+            $i = 1;
+            foreach($response['orders'] as $order) :
 
-				$address = $courier = $variant = '-';
+                $address = $courier = $variant = '-';
 
-				if( isset( $order->meta_data['shipping_data'] ) ) :
+                if( isset( $order->meta_data['shipping_data'] ) ) :
 
-					$shipping_data = wp_parse_args( $order->meta_data['shipping_data'], array(
-						'courier'     => NULL,
-						'service'     => NULL,
-						'district_id' => 0,
-						'cost'        => 0,
-						'receiver'    => NULL,
-						'phone'       => NULL,
-						'address'     => NULL
-					));
+                    $shipping_data = wp_parse_args( $order->meta_data['shipping_data'], array(
+                        'courier'     => NULL,
+                        'service'     => NULL,
+                        'district_id' => 0,
+                        'cost'        => 0,
+                        'receiver'    => NULL,
+                        'phone'       => NULL,
+                        'address'     => NULL
+                    ));
 
-					if( !empty($shipping_data['courier']) ) :
+                    if( !empty($shipping_data['courier']) ) :
 
-						$courier = $shipping_data['courier'];
+                        $courier = $shipping_data['courier'];
 
-						$courier = $shipping_data['service'] ? $courier . ' - ' . $shipping_data['service'] : $courier;
-						$courier = $shipping_data['service'] ? $courier . ' ' . sejolisa_price_format( $shipping_data['cost'] ) : $courier;
+                        $courier = $shipping_data['service'] ? $courier . ' - ' . $shipping_data['service'] : $courier;
+                        $courier = $shipping_data['service'] ? $courier . ' ' . sejolisa_price_format( $shipping_data['cost'] ) : $courier;
 
-					endif;
+                    endif;
 
-					if( isset( $shipping_data['address'] ) ) :
+                    if( isset( $shipping_data['address'] ) ) :
 
-						$address = $shipping_data['receiver'] . ' ('.$shipping_data['phone'].')' . PHP_EOL . $shipping_data['address'];
+                        $address = $shipping_data['receiver'] . ' ('.$shipping_data['phone'].')' . PHP_EOL . $shipping_data['address'];
 
-						$subdistrict = sejolise_get_subdistrict_detail( $shipping_data['district_id']);
+                        $subdistrict = sejolise_get_subdistrict_detail( $shipping_data['district_id']);
 
-						if( is_array($subdistrict) && isset($subdistrict['subdistrict_name']) ) :
+                        if( is_array($subdistrict) && isset($subdistrict['subdistrict_name']) ) :
 
-							$address = $address . PHP_EOL .
-										sprintf( __('Kota %s', 'sejoli'), $subdistrict['city'] ) . PHP_EOL .
-										sprintf( __('Kecamatan %s', 'sejoli'), $subdistrict['subdistrict_name'] ) . PHP_EOL .
-										sprintf( __('Provinsi %s', 'sejoli'), $subdistrict['province'] );
-						endif;
+                            $address = $address . PHP_EOL .
+                                        sprintf( __('Kota %s', 'sejoli'), $subdistrict['city'] ) . PHP_EOL .
+                                        sprintf( __('Kecamatan %s', 'sejoli'), $subdistrict['subdistrict_name'] ) . PHP_EOL .
+                                        sprintf( __('Provinsi %s', 'sejoli'), $subdistrict['province'] );
+                        endif;
 
-					endif;
+                    endif;
 
-				endif;
+                endif;
 
-				if( isset($order->meta_data['variants']) && 0 < count($order->meta_data['variants']) ) :
+                if( isset($order->meta_data['variants']) && 0 < count($order->meta_data['variants']) ) :
 
-					$variant_data = array();
+                    $variant_data = array();
 
-					foreach((array) $order->meta_data['variants'] as $variant ) :
-						$variant_data[] = strtoupper($variant['type']) . ' : ' . $variant['label'];
-					endforeach;
+                    foreach((array) $order->meta_data['variants'] as $variant ) :
+                        $variant_data[] = strtoupper($variant['type']) . ' : ' . $variant['label'];
+                    endforeach;
 
-					$variant = implode(PHP_EOL, $variant_data);
+                    $variant = implode(PHP_EOL, $variant_data);
 
-				endif;
+                endif;
 
-				$csv_data[$i] = array(
-					$order->ID,
-					$order->product->post_title,
-					$order->created_at,
-					$order->user_name,
-					$order->user_email,
-					get_user_meta($order->user_id, '_phone', true),
-					$order->grand_total,
+                $csv_data[$i] = array(
+                    $order->ID,
+                    $order->product->post_title,
+                    $order->created_at,
+                    $order->user_name,
+                    $order->user_email,
+                    get_user_meta($order->user_id, '_phone', true),
+                    $order->grand_total,
                     $order->earning,
-					$order->status,
-					$order->affiliate_id,
-					$order->affiliate_name,
-					$address,
-					$courier,
-					$variant
-				);
+                    $order->status,
+                    $order->affiliate_id,
+                    $order->affiliate_name,
+                    $address,
+                    $courier,
+                    $variant
+                );
 
-				$i++;
+                $i++;
 
-			endforeach;
+            endforeach;
 
-			header('Content-Type: text/csv');
-			header('Content-Disposition: attachment; filename="' . $filename . '.csv"');
+            header('Content-Type: text/csv');
+            header('Content-Disposition: attachment; filename="' . $filename . '.csv"');
 
-			$fp = fopen('php://output', 'wb');
-			foreach ($csv_data as $line) :
-			    fputcsv($fp, $line, ',');
-			endforeach;
-			fclose($fp);
+            $fp = fopen('php://output', 'wb');
+            foreach ($csv_data as $line) :
+                fputcsv($fp, $line, ',');
+            endforeach;
+            fclose($fp);
 
-		endif;
-		exit;
+        endif;
+        exit;
 
     }
 
@@ -459,13 +459,13 @@ Class JV extends \Sejoli_JV\JSON
     public function export_single_earning() {
 
         $post_data = wp_parse_args($_GET,[
-			'nonce'      => NULL,
-			'backend'    => false,
+            'nonce'      => NULL,
+            'backend'    => false,
             'date-range' => NULL,
             'user_id'    => 0
-		]);
+        ]);
 
-		if(
+        if(
             wp_verify_nonce($post_data['nonce'], 'sejoli-jv-earning-export') &&
             (
                 current_user_can('manage_sejoli_jv_data') ||
@@ -475,7 +475,7 @@ Class JV extends \Sejoli_JV\JSON
 
             $user_id = ( empty($user_id) || !current_user_can('manage_options') ) ? get_current_user_id() : $post_data['user_id'];
 
-			$filename = sprintf(
+            $filename = sprintf(
                             'export-jv-earning-%s-%s-user-%s',
                             strtoupper( sanitize_title( get_bloginfo('name') ) ),
                             date('Y-m-d-H-i-s', current_time('timestamp') ),
@@ -488,22 +488,22 @@ Class JV extends \Sejoli_JV\JSON
 
             $post_data['product_id'] = $this->set_products( $post_data['product_id'] );
 
-			unset($post_data['backend'], $post_data['nonce'], $post_data['user_id']);
+            unset($post_data['backend'], $post_data['nonce'], $post_data['user_id']);
 
-			$response  = sejoli_jv_get_single_user_data( $user_id, $post_data);
+            $response  = sejoli_jv_get_single_user_data( $user_id, $post_data);
 
-			$csv_data = [];
-			$csv_data[0]	= array(
+            $csv_data = [];
+            $csv_data[0]    = array(
                 'date',
                 'note',
                 'value',
                 'raw_value',
                 'type'
-			);
+            );
 
-			$i = 1;
+            $i = 1;
 
-			foreach($response['jv'] as $jv) :
+            foreach($response['jv'] as $jv) :
 
                 $date = ('0000-00-00 00:00:00' === $jv->updated_at ) ? $jv->updated_at : $jv->created_at;
 
@@ -515,24 +515,24 @@ Class JV extends \Sejoli_JV\JSON
                     $jv->type
                 );
 
-				$i++;
+                $i++;
 
-			endforeach;
+            endforeach;
 
-			header('Content-Type: text/csv');
-			header('Content-Disposition: attachment; filename="' . $filename . '.csv"');
+            header('Content-Type: text/csv');
+            header('Content-Disposition: attachment; filename="' . $filename . '.csv"');
 
-			$fp = fopen('php://output', 'wb');
+            $fp = fopen('php://output', 'wb');
 
-			foreach ($csv_data as $line) :
-			    fputcsv($fp, $line, ',');
-			endforeach;
+            foreach ($csv_data as $line) :
+                fputcsv($fp, $line, ',');
+            endforeach;
 
-			fclose($fp);
+            fclose($fp);
 
-		endif;
+        endif;
 
-		exit;
+        exit;
 
     }
 
@@ -545,16 +545,16 @@ Class JV extends \Sejoli_JV\JSON
     public function export_multi_earning() {
 
         $post_data = wp_parse_args($_GET,[
-			'nonce'      => NULL,
+            'nonce'      => NULL,
             'date-range' => NULL,
-		]);
+        ]);
 
-		if(
+        if(
             wp_verify_nonce($post_data['nonce'], 'sejoli-jv-multi-earning-export') &&
             current_user_can('manage_options')
         ) :
 
-			$filename = sprintf(
+            $filename = sprintf(
                             'export-jv-multi-earning-%s-%s',
                             strtoupper( sanitize_title( get_bloginfo('name') ) ),
                             date('Y-m-d-H-i-s', current_time('timestamp') )
@@ -564,17 +564,17 @@ Class JV extends \Sejoli_JV\JSON
 
             unset( $post_data['nonce'] );
 
-    		$respond = sejoli_jv_get_earning_data($post_data);
+            $respond = sejoli_jv_get_earning_data($post_data);
 
             $csv_data = [];
-			$csv_data[0]	= array(
+            $csv_data[0]    = array(
                 'user',
                 'sale',
                 'expenditure',
                 'earning'
-			);
+            );
 
-    		if(false !== $respond['valid']) :
+            if(false !== $respond['valid']) :
 
                 $i = 1;
 
@@ -591,22 +591,22 @@ Class JV extends \Sejoli_JV\JSON
 
                 endforeach;
 
-    		endif;
+            endif;
 
-			header('Content-Type: text/csv');
-			header('Content-Disposition: attachment; filename="' . $filename . '.csv"');
+            header('Content-Type: text/csv');
+            header('Content-Disposition: attachment; filename="' . $filename . '.csv"');
 
-			$fp = fopen('php://output', 'wb');
+            $fp = fopen('php://output', 'wb');
 
-			foreach ($csv_data as $line) :
-			    fputcsv($fp, $line, ',');
-			endforeach;
+            foreach ($csv_data as $line) :
+                fputcsv($fp, $line, ',');
+            endforeach;
 
-			fclose($fp);
+            fclose($fp);
 
-		endif;
+        endif;
 
-		exit;
+        exit;
 
     }
 
@@ -619,18 +619,19 @@ Class JV extends \Sejoli_JV\JSON
 
         $table = $this->set_table_args($_POST);
 
-		$data    = [];
+        $data  = [];
 
         if(
+            current_user_can('manage_sejoli_jv_data') &&
             isset($_POST['nonce']) &&
             wp_verify_nonce($_POST['nonce'], 'sejoli-render-jv-earning-table')
         ) :
 
             $jv_products = array();
 
-    		$respond = sejoli_jv_get_earning_data($table['filter'], $table);
+            $respond = sejoli_jv_get_earning_data($table['filter'], $table);
 
-    		if(false !== $respond['valid']) :
+            if(false !== $respond['valid']) :
 
                 foreach( $respond['jv'] as $i => $jv) :
 
@@ -641,17 +642,17 @@ Class JV extends \Sejoli_JV\JSON
 
                 endforeach;
 
-    		endif;
+            endif;
 
         endif;
 
-		echo wp_send_json([
-			'table'           => $table,
-			'draw'            => $table['draw'],
-			'data'            => $data,
-			'recordsTotal'    => count($data),
-			'recordsFiltered' => count($data),
-		]);
+        echo wp_send_json([
+            'table'           => $table,
+            'draw'            => $table['draw'],
+            'data'            => $data,
+            'recordsTotal'    => count($data),
+            'recordsFiltered' => count($data),
+        ]);
 
     }
 
@@ -664,9 +665,10 @@ Class JV extends \Sejoli_JV\JSON
 
         $table = $this->set_table_args($_POST);
 
-		$data    = [];
+        $data    = [];
 
         if(
+            current_user_can('manage_sejoli_jv_data') &&
             isset($_POST['nonce']) &&
             wp_verify_nonce($_POST['nonce'], 'sejoli-render-jv-single-table')
         ) :
@@ -678,9 +680,9 @@ Class JV extends \Sejoli_JV\JSON
                                 !isset($_POST['user'])
                            ) ? get_current_user_id() :intval($_POST['user']);
 
-    		$respond     = sejoli_jv_get_single_user_data( $user_id, $table['filter'], $table);
+            $respond     = sejoli_jv_get_single_user_data( $user_id, $table['filter'], $table);
 
-    		if(false !== $respond['valid']) :
+            if(false !== $respond['valid']) :
 
                 foreach( $respond['jv'] as $i => $jv) :
 
@@ -693,17 +695,17 @@ Class JV extends \Sejoli_JV\JSON
 
                 endforeach;
 
-    		endif;
+            endif;
 
         endif;
 
-		echo wp_send_json([
-			'table'           => $table,
-			'draw'            => $table['draw'],
-			'data'            => $data,
-			'recordsTotal'    => count($data),
-			'recordsFiltered' => count($data),
-		]);
+        echo wp_send_json([
+            'table'           => $table,
+            'draw'            => $table['draw'],
+            'data'            => $data,
+            'recordsTotal'    => count($data),
+            'recordsFiltered' => count($data),
+        ]);
 
     }
 
