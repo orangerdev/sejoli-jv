@@ -482,9 +482,9 @@ Class JV extends \Sejoli_JV\JSON
                             $user_id
                         );
 
-            if(!isset($post_data['product_id'])) :
-                $post_data['product_id'] = 8;
-            endif;
+            // if(!isset($post_data['product_id'])) :
+            //     $post_data['product_id'] = '';
+            // endif;
 
             // $post_data['product_id'] = $this->set_products( $post_data['product_id'] );
 
