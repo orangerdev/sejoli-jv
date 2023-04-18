@@ -488,11 +488,9 @@ Class JV extends \Sejoli_JV\JSON
 
             // $post_data['product_id'] = $this->set_products( $post_data['product_id'] );
 
-            if(intval($post_data['user_id']) > 0) :
-                
-                unset($post_data['backend'], $post_data['nonce']);
-
-            else:
+            unset($post_data['backend'], $post_data['nonce']);
+            
+            if(intval($post_data['user_id']) <= 0) :
 
                 unset($post_data['backend'], $post_data['nonce'], $post_data['user_id']);
 
