@@ -489,10 +489,11 @@ Class JV extends \Sejoli_JV\JSON
             // $post_data['product_id'] = $this->set_products( $post_data['product_id'] );
 
             unset($post_data['backend'], $post_data['nonce']);
-            
+
             if(intval($post_data['user_id']) <= 0) :
 
-                unset($post_data['backend'], $post_data['nonce'], $post_data['user_id']);
+                unset($post_data['user_id']);
+                unset($post_data['backend'], $post_data['nonce']);
 
             endif;
 
@@ -504,7 +505,7 @@ Class JV extends \Sejoli_JV\JSON
                 'note',
                 'value',
                 'raw_value',
-                'typess'
+                'type'
             );
 
             $i = 1;
