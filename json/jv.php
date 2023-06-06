@@ -776,10 +776,12 @@ Class JV extends \Sejoli_JV\JSON
 
                 foreach( $jv_setup as $setup ) :
 
-                    $value = floatval( $setup['value_portion'] );
+                    $value = floatval( $setup['value_portion'] ) - floatval( $amount );
 
                     if( 'percentage' === $setup['value_type'] ) :
+
                         $value = floor( $amount * $value / 100 );
+                    
                     endif;
 
                     sejoli_jv_add_expend_data( array(
@@ -795,8 +797,8 @@ Class JV extends \Sejoli_JV\JSON
 
                 endforeach;
 
-
                 $response['message'] = __('Penambahan nilai sudah berhasil', 'sejoli-jv');
+
             endif;
 
         endif;
@@ -806,7 +808,9 @@ Class JV extends \Sejoli_JV\JSON
         endif;
 
         wp_send_json( $response );
+
         exit;
+
     }
 
     /**
