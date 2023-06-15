@@ -482,13 +482,20 @@ Class JV extends \Sejoli_JV\JSON
                             $user_id
                         );
 
-            if(!isset($post_data['product_id'])) :
-                $post_data['product_id'] = 0;
+            // if(!isset($post_data['product_id'])) :
+            //     $post_data['product_id'] = '';
+            // endif;
+
+            // $post_data['product_id'] = $this->set_products( $post_data['product_id'] );
+
+            unset($post_data['backend'], $post_data['nonce']);
+
+            if(intval($post_data['user_id']) <= 0) :
+
+                unset($post_data['user_id']);
+                unset($post_data['backend'], $post_data['nonce']);
+
             endif;
-
-            $post_data['product_id'] = $this->set_products( $post_data['product_id'] );
-
-            unset($post_data['backend'], $post_data['nonce'], $post_data['user_id']);
 
             $response  = sejoli_jv_get_single_user_data( $user_id, $post_data);
 
@@ -769,10 +776,12 @@ Class JV extends \Sejoli_JV\JSON
 
                 foreach( $jv_setup as $setup ) :
 
-                    $value = floatval( $setup['value_portion'] );
+                    $value = floatval( $setup['value_portion'] ) - floatval( $amount );
 
                     if( 'percentage' === $setup['value_type'] ) :
+
                         $value = floor( $amount * $value / 100 );
+                    
                     endif;
 
                     sejoli_jv_add_expend_data( array(
@@ -788,8 +797,8 @@ Class JV extends \Sejoli_JV\JSON
 
                 endforeach;
 
-
                 $response['message'] = __('Penambahan nilai sudah berhasil', 'sejoli-jv');
+
             endif;
 
         endif;
@@ -799,7 +808,9 @@ Class JV extends \Sejoli_JV\JSON
         endif;
 
         wp_send_json( $response );
+
         exit;
+
     }
 
     /**

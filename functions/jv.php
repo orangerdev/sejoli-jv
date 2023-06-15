@@ -152,7 +152,6 @@ function sejoli_jv_get_single_user_data( int $user_id, array $args, $table = arr
         'product_id'    => NULL,
         'date-range'    => date('Y-m-01') . ' - ' . date('Y-m-t'),
     ]);
-
     $table = wp_parse_args($table, [
         'start'   => NULL,
         'length'  => NULL,
@@ -165,9 +164,19 @@ function sejoli_jv_get_single_user_data( int $user_id, array $args, $table = arr
         unset($args['date-range']);
     endif;
 
-    $query = SejoliJV\Model\JV::reset()
-                    ->set_filter_from_array($args)
-                    ->set_user_id($user_id);
+    if(isset($args['user_id']) && !empty($args['user_id'])) :
+
+        $query = SejoliJV\Model\JV::reset()
+                        ->set_filter_from_array($args)
+                        ->set_user_id($args['user_id']);
+
+    else:
+
+        $query = SejoliJV\Model\JV::reset()
+                        ->set_filter_from_array($args)
+                        ->set_user_id($user_id);
+
+    endif;
 
     if(isset($table['filter']['date-range']) && !empty($table['filter']['date-range'])) :
         list($start, $end) = explode(' - ', $table['filter']['date-range']);
