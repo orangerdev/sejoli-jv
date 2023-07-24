@@ -127,8 +127,8 @@ function sejoli_jv_get_earning_data( array $args, $table = array()) {
 
     if(isset($table['filter']['date-range']) && !empty($table['filter']['date-range'])) :
         list($start, $end) = explode(' - ', $table['filter']['date-range']);
-        $query = $query->set_filter('created_at', $start.' 00:00:00', '>=')
-                    ->set_filter('created_at', $end.' 23:59:59', '<=');
+        $query = $query->set_filter('updated_at', $start.' 00:00:00', '>=')
+                    ->set_filter('updated_at', $end.' 23:59:59', '<=');
     endif;
 
     $response = $query->get_all_earning()
@@ -180,8 +180,8 @@ function sejoli_jv_get_single_user_data( int $user_id, array $args, $table = arr
 
     if(isset($table['filter']['date-range']) && !empty($table['filter']['date-range'])) :
         list($start, $end) = explode(' - ', $table['filter']['date-range']);
-        $query = $query->set_filter('created_at', $start.' 00:00:00', '>=')
-                    ->set_filter('created_at', $end.' 23:59:59', '<=');
+        $query = $query->set_filter('updated_at', $start.' 00:00:00', '>=')
+                    ->set_filter('updated_at', $end.' 23:59:59', '<=');
     endif;
 
     if(!is_null($table['order']) && is_array($table['order'])) :
@@ -255,8 +255,8 @@ function sejoli_jv_get_orders( array $args, $table = array() ) {
 
     if(isset($table['filter']['date-range']) && !empty($table['filter']['date-range'])) :
         list($start, $end) = explode(' - ', $table['filter']['date-range']);
-        $query = $query->set_filter('created_at', $start.' 00:00:00', '>=')
-                    ->set_filter('created_at', $end.' 23:59:59', '<=');
+        $query = $query->set_filter('data_order.updated_at', $start.' 00:00:00', '>=')
+                    ->set_filter('data_order.updated_at', $end.' 23:59:59', '<=');
     endif;
 
     if(0 < $table['length']) :
@@ -283,5 +283,38 @@ function sejoli_jv_get_orders( array $args, $table = array() ) {
         'orders'   => NULL,
         'messages' => []
     ]);
+
+}
+
+/**
+ * Update single jv profit paid status
+ * @since   1.1.3
+ * @param   array  $args
+ * @return  array
+ */
+function sejolisa_update_single_jv_profit_paid_status( array $args ) {
+
+    $args = wp_parse_args($args, array(
+        'user_id'       => 0,
+        'paid_status'   => NULL,
+        'current_time'  => current_time( 'mysql' ),
+        'date_range'    => '',
+    ));
+
+    $query = SejoliJV\Model\JV::reset()
+                ->set_user_id( $args['user_id'] )
+                ->set_paid_status( $args['paid_status'] )
+                ->set_paid_time( $args['current_time'] );
+
+    if ( isset( $args['date_range'] ) && ! empty( $args['date_range'] ) ) :
+        list($start, $end) = explode(' - ', $args['date_range']);
+        $query->set_filter('updated_at', $start.' 00:00:00', '>=')
+                ->set_filter('updated_at', $end.' 23:59:59', '<=');
+    endif;
+
+    $response = $query->update_single_jv_profit_paid_status()
+                      ->respond();
+
+    return $response;
 
 }

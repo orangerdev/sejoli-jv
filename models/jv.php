@@ -14,7 +14,9 @@ Class JV extends \SejoliJV\Model
     static protected $value          = 0.0;
     static protected $status         = 'pending';
     static protected $type           = 'out';
-    static protected $expend_id = NULL;
+    static protected $expend_id      = NULL;
+    static protected $paid_status    = 0;
+    static protected $paid_time      = '0000-00-00 00:00:00';
 
     /**
      * Set jv value ID
@@ -53,6 +55,25 @@ Class JV extends \SejoliJV\Model
      */
     static public function set_status($status) {
         self::$status = (empty($status)) ? 'pending' : $status;
+        return new static;
+    }
+
+    /**
+     * Set paid status
+     * @var bool
+     */
+    static public function set_paid_status($paid_status) {
+        self::$paid_status = boolval($paid_status);
+        return new static;
+    }
+
+    /**
+     * Set paid time
+     * @since   1.5.1
+     * @var string
+     */
+    static public function set_paid_time($paid_time) {
+        self::$paid_time = $paid_time;
         return new static;
     }
 
@@ -364,6 +385,8 @@ Class JV extends \SejoliJV\Model
                         Capsule::raw(
                             'SUM(CASE WHEN type = "out" THEN value ELSE 0 END) AS expenditure_value'
                         ),
+                        Capsule::raw('SUM(CASE WHEN type = "in" AND status = "added" AND paid_status = 0 THEN JV.value ELSE 0 END) AS unpaid_commission '),
+                        Capsule::raw('SUM(CASE WHEN type = "in" AND status = "added" AND paid_status = 1 THEN JV.value ELSE 0 END) AS paid_commission '),
                         Capsule::raw(
                             'SUM(
                                 CASE
@@ -479,4 +502,45 @@ Class JV extends \SejoliJV\Model
 
         return new static;
     }
+
+    /**
+     * Update all single jv profit paid status
+     * @since   1.1.3
+     * @since   1.5.2   Add added status to jv profit that has been paid
+     */
+    static public function update_single_jv_profit_paid_status() {
+
+        global $wpdb;
+
+        self::set_action( 'update-single-jv-profit' );
+        self::validate();
+
+        if( true === self::$valid ) :
+
+            parent::$table = self::$table;
+
+            $query = Capsule::table( self::table() )
+                        ->where('user_id', self::$user_id)
+                        ->where('updated_at', '<=', self::$paid_time)
+                        ->where('type', 'in')
+                        ->where('status', 'added');
+
+            $query = self::set_filter_query( $query );
+
+            $result = $query->update(array(
+                        'paid_status' => self::$paid_status
+                    ));
+
+            if( $result ) :
+                self::set_valid(true);
+            else :
+                self::set_valid(false);
+            endif;
+
+        endif;
+
+        return new static;
+    
+    }
+
 }

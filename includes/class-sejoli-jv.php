@@ -135,6 +135,7 @@ class Sejoli_JV {
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-sejoli-jv-admin.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-sejoli-jv-product.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-sejoli-jv-user.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/notification.php';
 
 		/**
 		 * The class responsible for defining all actions that occur in the public-facing
@@ -222,6 +223,15 @@ class Sejoli_JV {
 		$this->loader->add_filter( 'sejoli/user/fields',	$user, 'setup_user_fields',		300);
 		$this->loader->add_action( 'admin_footer',			$user, 'set_js_footer',			100);
 
+		$notification  = new Sejoli_JV\Admin\Notification( $this->get_plugin_name(), $this->get_version() );
+
+		$this->loader->add_filter( 'sejoli/email/template-directory',		$notification, 'set_notification_directory', 12, 4);
+		$this->loader->add_filter( 'sejoli/sms/template-directory',			$notification, 'set_notification_directory', 12, 4);
+		$this->loader->add_filter( 'sejoli/whatsapp/template-directory',	$notification, 'set_notification_directory', 12, 4);
+
+		$this->loader->add_filter( 'sejoli/notification/libraries',			$notification, 'add_libraries', 12);
+		$this->loader->add_action( 'sejoli/notification/jv/profit',	        $notification, 'send_jv_profit_notification', 12);
+
 	}
 
 	/**
@@ -276,6 +286,8 @@ class Sejoli_JV {
 
 		$this->loader->add_action( 'wp_ajax_sejoli-jv-user-earning-table',				$jv, 'set_for_single_table');
 		$this->loader->add_action( 'wp_ajax_sejoli-jv-order-export-earning-prepare',	$jv, 'prepare_earning_export');
+
+		$this->loader->add_action( 'wp_ajax_sejoli-pay-single-jv-profit',	$jv, 'confirm_single_jv_profit_transfer');
 
 		// $this->loader->add_action( 'sejoli_ajax_sejoli-jv-order-export',		$jv, 'export_order');
 
