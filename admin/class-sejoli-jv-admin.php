@@ -192,6 +192,12 @@ class Admin {
 				'nonce'       => wp_create_nonce('sejoli-render-jv-earning-table')
 			),
 
+			'pay'	=> array(
+				'ajaxurl' => add_query_arg([
+					'action' => 'sejoli-pay-single-jv-profit'
+				], admin_url('admin-ajax.php')),
+			),
+
 			'single_table'	=> array(
 				'ajaxurl'	=> add_query_arg(array(
 						'action' => 'sejoli-jv-single-table'
@@ -237,7 +243,7 @@ class Admin {
 		return $js_vars;
 	}
 
-	/**
+	/* *
 	 * Add JV Earning data menu
 	 * Hooked via action admin_menu, 2999
 	 * @since 	1.0.0

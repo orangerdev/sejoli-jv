@@ -101,7 +101,10 @@ let sejoli_table;
                 },{
                     targets: 0,
                     width:   '120px',
-                    data:    'created_at'
+                    data:    'updated_at',
+                    render : function(data, type, full) {
+                        return ("0000-00-00 00:00:00" !== data) ? sejoli.helper.convertdate(data) : sejoli.helper.convertdate(full.created_at) 
+                    }
                 },{
                     targets: 1,
                     data:    'note',

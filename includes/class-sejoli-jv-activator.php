@@ -55,6 +55,17 @@ class Sejoli_JV_Activator {
                 $table->text        ('meta_data');
 
             });
+
+        endif;
+
+        if(Capsule::schema()->hasTable( $table )):
+
+            Capsule::schema()->table( $table, function($table){
+
+                $table->tinyInteger('paid_status')->default(0)->after('meta_data');
+
+            });
+        
         endif;
 
 	}

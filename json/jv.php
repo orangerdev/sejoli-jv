@@ -330,7 +330,7 @@ Class JV extends \Sejoli_JV\JSON
 
         $post_data = wp_parse_args($_GET,[
             'nonce'   => NULL,
-            'backend' => false
+            'backend' => false 
         ]);
 
         if(
@@ -349,7 +349,7 @@ Class JV extends \Sejoli_JV\JSON
 
             $post_data['product_id'] = $this->set_products( $post_data['product_id'] );
 
-            unset($post_data['backend'], $post_data['nonce']);;
+            unset($post_data['backend'], $post_data['nonce']);;    
 
             $response   = sejoli_jv_get_orders($post_data);
 
@@ -357,7 +357,7 @@ Class JV extends \Sejoli_JV\JSON
             $csv_data[0]    = array(
                 'INV', 'product', 'created_at', 'name', 'email', 'phone', 'price', 'earning', 'status', 'affiliate', 'affiliate_id',
                 'address', 'courier', 'variant',
-            );
+            );     
 
             $i = 1;
             foreach($response['orders'] as $order) :
@@ -410,7 +410,7 @@ Class JV extends \Sejoli_JV\JSON
                     foreach((array) $order->meta_data['variants'] as $variant ) :
                         $variant_data[] = strtoupper($variant['type']) . ' : ' . $variant['label'];
                     endforeach;
-
+ 
                     $variant = implode(PHP_EOL, $variant_data);
 
                 endif;
@@ -512,10 +512,10 @@ Class JV extends \Sejoli_JV\JSON
 
             foreach($response['jv'] as $jv) :
 
-                $date = ('0000-00-00 00:00:00' === $jv->updated_at ) ? $jv->updated_at : $jv->created_at;
+                $date = ('0000-00-00 00:00:00' !== $jv->updated_at ) ? $jv->updated_at : $jv->created_at;
 
                 $csv_data[$i] = array(
-                    $date,
+                    date('Y M d', strtotime($date)),
                     $this->set_note( $jv ),
                     sejolisa_price_format( $jv->value ),
                     $jv->value,
@@ -578,7 +578,9 @@ Class JV extends \Sejoli_JV\JSON
                 'user',
                 'sale',
                 'expenditure',
-                'earning'
+                'earning',
+                'unpaid_earning',
+                'paid_earning'
             );
 
             if(false !== $respond['valid']) :
@@ -591,7 +593,9 @@ Class JV extends \Sejoli_JV\JSON
                         $jv->display_name,
                         sejolisa_price_format( $jv->earning_value ),
                         sejolisa_price_format( $jv->expenditure_value ),
-                        sejolisa_price_format( $jv->total_value )
+                        sejolisa_price_format( $jv->total_value ),
+                        sejolisa_price_format( $jv->unpaid_commission ),
+                        sejolisa_price_format( $jv->paid_commission )
                     );
 
                     $i++;
@@ -643,9 +647,12 @@ Class JV extends \Sejoli_JV\JSON
                 foreach( $respond['jv'] as $i => $jv) :
 
                     $data[$i] = (array) $jv;
-                    $data[$i]['earning_value']     = sejolisa_price_format( $data[$i]['earning_value'] );
-                    $data[$i]['expenditure_value'] = sejolisa_price_format( $data[$i]['expenditure_value'] );
-                    $data[$i]['total_value']       = sejolisa_price_format( $data[$i]['total_value'] );
+                    $data[$i]['earning_value']      = sejolisa_price_format( $data[$i]['earning_value'] );
+                    $data[$i]['expenditure_value']  = sejolisa_price_format( $data[$i]['expenditure_value'] );
+                    $data[$i]['total_value']        = sejolisa_price_format( $data[$i]['total_value'] );
+                    $data[$i]['paid_commission']    = sejolisa_price_format( $data[$i]['paid_commission'] );
+                    $data[$i]['unpaid_commission']  = $data[$i]['unpaid_commission'];
+                    $data[$i]['informasi_rekening'] = sejolisa_carbon_get_user_meta( $data[$i]['user_id'], 'bank_info' );
 
                 endforeach;
 
@@ -697,6 +704,7 @@ Class JV extends \Sejoli_JV\JSON
 
                     $data[$i]['note']        = $this->set_note( $jv );
                     $data[$i]['created_at']  = date('Y M d', strtotime($jv->created_at));
+                    $data[$i]['updated_at']  = $jv->updated_at;
                     $data[$i]['value']       = sejolisa_price_format( $jv->value );
                     $data[$i]['raw_value']   = floatval($jv->value);
 
@@ -854,4 +862,137 @@ Class JV extends \Sejoli_JV\JSON
         echo wp_send_json($response);
         exit;
     }
+
+    /**
+     * Upload jv profit proof file to wordpress media
+     * @since   1.0.0
+     * @param   array           $upload [description]
+     * @return  string|false    Path of file if upload success
+     */
+    protected function upload_jv_profit_proof( $upload ) {
+
+        $return = false;
+
+        if( 0 !== intval( $upload['error'] ) ) :
+            return $return;
+        endif;
+
+        $file = wp_upload_bits( $upload['name'], null, file_get_contents( $upload['tmp_name'] ) );
+
+        if( FALSE === $file['error'] ) :
+
+            $type = '';
+
+            if ( !empty( $file['type'] ) ) :
+  
+                $type = $file['type'];
+  
+            else :
+  
+                $mime = wp_check_filetype( $file['file'] );
+                if ( $mime ) :
+  
+                    $type = $mime['type'];
+  
+                endif;
+  
+            endif;
+
+            $attachment = array(
+                'post_title'     => basename( $file['file'] ),
+                'post_content'   => '',
+                'post_type'      => 'attachment',
+                'post_mime_type' => $type,
+                'guid'           => $file['url']
+            );
+
+            $id = wp_insert_attachment( $attachment, $file['file'] );
+
+            wp_update_attachment_metadata(
+                $id,
+                wp_generate_attachment_metadata(
+                    $id,
+                    $file['file']
+                )
+            );
+
+            return $file['file'];
+    
+        endif;
+    
+    }
+
+    /**
+     * Update single jv profit status
+     * Hooked via action wp_ajax_sejoli-pay-single-jv-profit, priority 1
+     * @since   1.0.0
+     * @return  void
+     */
+    public function confirm_single_jv_profit_transfer() {
+
+        $response = [
+            'valid'    => false,
+            'messages' => []
+        ];
+
+        $post_data = wp_parse_args($_POST,[
+            'sejoli-nonce'      => '',
+            'user_id'           => 0,
+            'unpaid_commission' => '',
+            'current_time'      => current_time( 'mysql' ),
+            'date_range'        => '',
+        ]);
+
+        if(
+            isset( $post_data['sejoli-nonce'] ) &&
+            wp_verify_nonce( $post_data['sejoli-nonce'], 'sejoli-pay-single-jv-profit' )
+        ) :
+
+            $user_id = intval( $post_data['user_id'] );
+            $user = sejolisa_get_user( $post_data['user_id'] );
+
+            if( is_a( $user, 'WP_User' ) ) :
+
+                $profit_data = array(
+                    'user_id'           => $user_id,
+                    'unpaid_commission' => sejolisa_price_format( $post_data['unpaid_commission'] ),
+                    'user-name'         => $user->display_name,
+                    'user-email'        => $user->user_email,
+                    'user-phone'        => $user->meta->phone,
+                    'attachments'       => array()
+                );
+
+                if( isset( $_FILES['proof'] ) ) :
+
+                    $file = $this->upload_jv_profit_proof( $_FILES['proof'] );
+                    if( false !== $file ) :
+                        $profit_data['attachments'][] = $file;
+                    endif;
+                
+                endif;
+
+                sejolisa_update_single_jv_profit_paid_status(array(
+                    'user_id'      => $user_id,
+                    'paid_status'  => true,
+                    'current_time' => $post_data['current_time'],
+                    'date_range'   => $post_data['date_range'],
+                ));
+
+                do_action('sejoli/notification/jv/profit', $profit_data);
+
+                $response['valid'] = true;
+                $response['messages'][]['message'] = __('Status profit sudah diupdate ke TELAH DIBAYAR', 'sejoli');
+
+            else :
+
+                $response['messages'][]['message'] = __('User tidak valid', 'sejoli');
+            
+            endif;
+
+        endif;
+
+        wp_send_json( $response );
+    
+    }
+
 }

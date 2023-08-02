@@ -120,7 +120,7 @@ let sejoli_table;
 							product : full.product_name,
 							coupon : full.coupon_code,
 							parent : full.order_parent_id,
-							date : sejoli.convertdate(full.created_at),
+							date : sejoli.convertdate(full.updated_at),
 							type : sejoli_member_area.subscription.type[full.type],
 							quantity : quantity,
 						})
