@@ -123,44 +123,6 @@ class JVProfitNotification extends \SejoliSA\Notification\Main {
                                     			));
         
         endif;
-
-		// ***********************
-		// Setup content for buyer
-		// ***********************
-
-		if( false !== carbon_get_theme_option('jv_profit_admin_active') ) :
-
-            $this->set_enable_send('email', 'admin', true);
-    		$this->set_recipient_title('admin', 'email', carbon_get_theme_option('jv_profit_admin_email_title'));
-    		$this->set_recipient_content('admin', 'email', $this->set_notification_content(
-													carbon_get_theme_option('jv_profit_admin_email_content'),
-													'email',
-                                                    'admin'
-												));
-
-    		if( !empty(carbon_get_theme_option('jv_profit_admin_whatsapp_content')) ) :
-
-				$this->set_enable_send('whatsapp', 'admin', true);
-				$this->set_recipient_content('admin', 'whatsapp', $this->set_notification_content(
-                                                			carbon_get_theme_option('jv_profit_admin_whatsapp_content'),
-                                                			'whatsapp',
-                                                            'admin'
-                                                		));
-            
-            endif;
-
-    		if( !empty(carbon_get_theme_option('jv_profit_admin_sms_content')) ) :
-                
-                $this->set_enable_send('sms', 'admin', true);
-				$this->set_recipient_content('admin', 'sms', $this->set_notification_content(
-                                        				carbon_get_theme_option('jv_profit_admin_sms_content'),
-                                        				'sms',
-                                                        'admin'
-                                        			));
-            
-            endif;
-
-        endif;
     
     }
 
