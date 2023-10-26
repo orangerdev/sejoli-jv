@@ -26,6 +26,12 @@ e.g.
 
 == Changelog ==
 
+= 1.2.0 =
+26 Oktober 2023
+* Add proceed paid like affiliate commission and add notification
+* fix bug input manual JV
+* fix Sort data by complete order
+
 = 1.0.1 =
 28 November 2021
 * Fix issue with JV data not showing
