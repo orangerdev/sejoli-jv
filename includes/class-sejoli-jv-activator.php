@@ -60,11 +60,15 @@ class Sejoli_JV_Activator {
 
         if(Capsule::schema()->hasTable( $table )):
 
-            Capsule::schema()->table( $table, function($table){
+            if(!Capsule::schema()->hasColumn( $table, 'paid_status' )):
+            
+                Capsule::schema()->table( $table, function($table){
 
-                $table->tinyInteger('paid_status')->default(0)->after('meta_data');
+                    $table->tinyInteger('paid_status')->default(0)->after('meta_data');
 
-            });
+                });
+
+            endif;
         
         endif;
 
