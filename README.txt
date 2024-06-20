@@ -26,6 +26,11 @@ e.g.
 
 == Changelog ==
 
+= 1.2.1 =
+20 Juni 2024
+* fix bug input data credit not showing popup form in detail page
+* fix bug data credit not displayed
+
 = 1.2.0 =
 26 Oktober 2023
 * Add proceed paid like affiliate commission and add notification

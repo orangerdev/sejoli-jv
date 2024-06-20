@@ -703,7 +703,7 @@ Class JV extends \Sejoli_JV\JSON
                     $data[$i] = (array) $jv;
 
                     $data[$i]['note']        = $this->set_note( $jv );
-                    $data[$i]['created_at']  = date('Y M d', strtotime($jv->created_at));
+                    $data[$i]['created_at']  = $jv->created_at;
                     $data[$i]['updated_at']  = $jv->updated_at;
                     $data[$i]['value']       = sejolisa_price_format( $jv->value );
                     $data[$i]['raw_value']   = floatval($jv->value);
