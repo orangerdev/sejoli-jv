@@ -15,7 +15,7 @@
             <div class="sejoli-form-filter box" style='float:right;'>
 
                 <button type="button" name="button" class='export-csv button'><?php _e('Export CSV', 'sejoli-jv'); ?></button>
-                <button type="button" name="button" class='add-data button'><?php _e('Input Data', 'sejoli-jv'); ?></button>
+                <button type="button" name="add-expenditure" class='add-expenditure button'><?php _e('Input Data', 'sejoli-jv'); ?></button>
                 <button type="button" name="button" class='button toggle-search'><?php _e('Filter Data', 'sejoli-jv'); ?></button>
 
                 <div class="sejoli-form-filter-holder sejoli-form-float">
@@ -50,6 +50,9 @@
         </div>
     </div>
 </div>
+
+<?php require_once( plugin_dir_path( __FILE__) . '/add-data.php' ); ?>
+
 <script type="text/javascript">
 
 let sejoli_table;
@@ -103,7 +106,7 @@ let sejoli_table;
                     width:   '120px',
                     data:    'updated_at',
                     render : function(data, type, full) {
-                        return ("0000-00-00 00:00:00" !== data) ? sejoli.helper.convertdate(data) : sejoli.helper.convertdate(full.created_at) 
+                        return ("0000-00-00 00:00:00" !== data) ? sejoli.helper.convertdate(data) : sejoli.helper.convertdate(full.created_at)
                     }
                 },{
                     targets: 1,

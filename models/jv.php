@@ -368,7 +368,7 @@ Class JV extends \SejoliJV\Model
      * Get all JV earning
      * @since   1.0.0
      */
-    static public function get_all_earning() {
+    static public function get_all_earning($start, $end) {
 
         global $wpdb;
 
@@ -401,6 +401,10 @@ Class JV extends \SejoliJV\Model
                     )
                     ->where('status', 'added')
                     ->where('JV.deleted_at', '=', '0000-00-00 00:00:00')
+                    ->where(function ($query) use ($start, $end) {
+                        $query->whereBetween('JV.updated_at', [$start, $end])
+                            ->orWhere('JV.updated_at', '0000-00-00 00:00:00');
+                    })
                     ->orderBy('total_value', 'DESC')
                     ->groupBy('user_id');
 
@@ -427,7 +431,7 @@ Class JV extends \SejoliJV\Model
      * Get single user data
      * @since   1.0.0
      */
-    static public function get_single_user() {
+    static public function get_single_user($start, $end) {
 
         global $wpdb;
 
@@ -436,7 +440,11 @@ Class JV extends \SejoliJV\Model
         $query  = Capsule::table( Capsule::raw( self::table() . ' AS JV ') )
                     ->where('status', 'added')
                     ->where('user_id', self::$user_id)
-                    ->where('JV.deleted_at', '=', '0000-00-00 00:00:00');;
+                    ->where('JV.deleted_at', '=', '0000-00-00 00:00:00')
+                    ->where(function ($query) use ($start, $end) {
+                        $query->whereBetween('JV.updated_at', [$start, $end])
+                            ->orWhere('JV.updated_at', '0000-00-00 00:00:00');
+                    });
 
         $query  = self::set_filter_query( $query );
         $query  = self::set_length_query( $query );

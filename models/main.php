@@ -273,7 +273,7 @@ Class Model
                 elseif( 'created_at' === $value['name'] ) :
                     $value['name'] = 'JV.created_at';
                 elseif( 'type' === $value['name'] ) :
-                    $value['name'] = 'data_order.type';
+                    $value['name'] = 'JV.type';
                 elseif( 'status' === $value['name'] ) :
                     $value['name'] = 'data_order.status';
                 endif;
@@ -291,6 +291,7 @@ Class Model
                     elseif(isset($value['compare']) && !is_null($value['compare'])) :
 
                         if('NOT IN' === $value['compare'] ) :
+                            error_log(print_r($value, true));
                             $query->whereNotIn($value['name'], $value['val']);
                         else :
                             $query->where( $value['name'], $value['compare'], $value['val']);

@@ -127,11 +127,11 @@ function sejoli_jv_get_earning_data( array $args, $table = array()) {
 
     if(isset($table['filter']['date-range']) && !empty($table['filter']['date-range'])) :
         list($start, $end) = explode(' - ', $table['filter']['date-range']);
-        $query = $query->set_filter('updated_at', $start.' 00:00:00', '>=')
-                    ->set_filter('updated_at', $end.' 23:59:59', '<=');
+        // $query = $query->set_filter('updated_at', $start.' 00:00:00', '>=')
+        //             ->set_filter('updated_at', $end.' 23:59:59', '<=');
     endif;
 
-    $response = $query->get_all_earning()
+    $response = $query->get_all_earning($start, $end)
                     ->respond();
 
     return $response;
@@ -180,8 +180,8 @@ function sejoli_jv_get_single_user_data( int $user_id, array $args, $table = arr
 
     if(isset($table['filter']['date-range']) && !empty($table['filter']['date-range'])) :
         list($start, $end) = explode(' - ', $table['filter']['date-range']);
-        $query = $query->set_filter('updated_at', $start.' 00:00:00', '>=')
-                    ->set_filter('updated_at', $end.' 23:59:59', '<=');
+        // $query = $query->set_filter('updated_at', $start.' 00:00:00', '>=')
+        //             ->set_filter('updated_at', $end.' 23:59:59', '<=');
     endif;
 
     if(!is_null($table['order']) && is_array($table['order'])) :
@@ -190,7 +190,7 @@ function sejoli_jv_get_single_user_data( int $user_id, array $args, $table = arr
         endforeach;
     endif;
 
-    $response = $query->get_single_user()
+    $response = $query->get_single_user($start, $end)
                     ->respond();
 
     return $response;
