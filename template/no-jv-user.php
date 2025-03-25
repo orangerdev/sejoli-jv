@@ -2,10 +2,10 @@
 <h2 class="ui header"><?php _e('Anda tidak memiliki akses', 'sejoli'); ?></h2>
 <div class="ui negative message">
     <div class="header">
-        Maaf, anda tidak berhak mengakses halaman ini
+        <?php _e('Maaf, anda tidak berhak mengakses halaman ini', 'sejoli'); ?>
     </div>
     <p>
-        Halaman ini hanya untuk JV ( Joint Venture ). Anda tidak berhak untuk mengakses halaman ini.
+        <?php _e('Halaman ini hanya untuk JV ( Joint Venture ). Anda tidak berhak untuk mengakses halaman ini.', 'sejoli'); ?>
     </p>
 </div>
 <?php

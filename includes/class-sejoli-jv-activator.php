@@ -1,7 +1,5 @@
 <?php
 
-use Illuminate\Database\Capsule\Manager as Capsule;
-
 /**
  * Fired during plugin activation
  *
@@ -32,46 +30,46 @@ class Sejoli_JV_Activator {
 	 * @since    1.0.0
 	 */
 	public static function activate() {
-
-		global $wpdb;
-
-		$table = $wpdb->prefix . 'sejolisa_jv';
-
-		if(!Capsule::schema()->hasTable( $table )):
-
-            Capsule::schema()->create( $table, function($table){
-
-				$table->increments  ('ID');
-                $table->datetime    ('created_at');
-                $table->datetime    ('updated_at')->default('0000-00-00 00:00:00');
-                $table->datetime    ('deleted_at')->default('0000-00-00 00:00:00');
-				$table->integer     ('order_id');
-				$table->integer 	('expend_id')->nullable();
-                $table->integer     ('product_id');
-                $table->integer     ('user_id'); // Means JV ID
-                $table->enum        ('type', array('in', 'out'));
-                $table->float       ('value', 12, 2);
-                $table->string      ('status', 100)->default('pending');
-                $table->text        ('meta_data');
-
-            });
-
-        endif;
-
-        if(Capsule::schema()->hasTable( $table )):
-
-            if(!Capsule::schema()->hasColumn( $table, 'paid_status' )):
-            
-                Capsule::schema()->table( $table, function($table){
-
-                    $table->tinyInteger('paid_status')->default(0)->after('meta_data');
-
-                });
-
-            endif;
         
+        global $wpdb;
+
+        $table = $wpdb->prefix . 'sejolisa_jv';
+
+        $table_exists = $wpdb->get_var("SHOW TABLES LIKE '$table'");
+
+        if (!$table_exists) :
+
+            $charset_collate = $wpdb->get_charset_collate();
+
+            $sql = "
+                CREATE TABLE $table (
+                    ID INT(11) NOT NULL AUTO_INCREMENT,
+                    created_at DATETIME NOT NULL,
+                    updated_at DATETIME DEFAULT '0000-00-00 00:00:00',
+                    deleted_at DATETIME DEFAULT '0000-00-00 00:00:00',
+                    order_id INT(11) NOT NULL,
+                    expend_id INT(11) DEFAULT NULL,
+                    product_id INT(11) NOT NULL,
+                    user_id INT(11) NOT NULL,
+                    type ENUM('in', 'out') NOT NULL,
+                    value FLOAT(12,2) NOT NULL,
+                    status VARCHAR(100) DEFAULT 'pending',
+                    meta_data TEXT NOT NULL,
+                    PRIMARY KEY (ID)
+                ) $charset_collate;
+            ";
+
+            require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
+            dbDelta( $sql );
+
         endif;
 
-	}
+        $column_exists = $wpdb->get_results("SHOW COLUMNS FROM $table LIKE 'paid_status'");
+
+        if (!$column_exists) :
+            $wpdb->query("ALTER TABLE $table ADD COLUMN paid_status TINYINT(1) DEFAULT 0 AFTER meta_data");
+        endif;
+
+    }
 
 }
