@@ -20,7 +20,7 @@
     </thead>
     <tbody>
         <tr>
-            <td colspan="5">Tidak ada data yang bisa ditampilkan</td>
+            <td colspan="5"><?php _e('Tidak ada data yang bisa ditampilkan', 'sejoli'); ?></td>
         </tr>
     </tbody>
     <tfoot>
@@ -41,7 +41,7 @@ include( plugin_dir_path( __FILE__ ) . '/order/filter.php');
 include( plugin_dir_path( __FILE__ ) . '/order/detail.php');
 ?>
 <script id="tmpl-nodata" type="text/x-js-render">
-    <p>Tidak ada data ditemukan</p>
+    <p><?php _e('Tidak ada data ditemukan', 'sejoli'); ?></p>
 </script>
 <script type='text/javascript'>
 let sejoli_table;

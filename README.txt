@@ -26,6 +26,10 @@ e.g.
 
 == Changelog ==
 
+= 1.2.2 =
+17 September 2024
+* fix bug input data credit expenditur
+
 = 1.2.1 =
 20 Juni 2024
 * fix bug input data credit not showing popup form in detail page

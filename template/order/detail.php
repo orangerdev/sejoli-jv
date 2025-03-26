@@ -1,5 +1,5 @@
 <script id='order-detail' type="text/x-jsrender">
-<!--<button type='button' class='order-detail-trigger ui mini button' data-id='{{:id}}'>DETAIL</button>-->
+<!--<button type='button' class='order-detail-trigger ui mini button' data-id='{{:id}}'><?php _e('DETAIL', 'sejoli'); ?></button>-->
 <strong>
     {{:product}}
     {{if quantity}}
@@ -11,7 +11,7 @@
     <span class="ui olive label">INV {{:id}}</span>
     <span class="ui teal label"><i class="calendar outline icon"></i>{{:date}}</span>
 
-    {{if parent }}
+    {{if parent != 0}}
     <span class="ui pink label" style='text-transform:uppercase;'><i class="redo icon"></i>INV {{:parent}}</span>
     {{/if}}
 

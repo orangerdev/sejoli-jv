@@ -509,7 +509,7 @@ Class JV extends \Sejoli_JV\JSON
             );
 
             $i = 1;
-
+            
             foreach($response['jv'] as $jv) :
 
                 $date = ('0000-00-00 00:00:00' !== $jv->updated_at ) ? $jv->updated_at : $jv->created_at;
@@ -788,7 +788,7 @@ Class JV extends \Sejoli_JV\JSON
 
                     if( 'percentage' === $setup['value_type'] ) :
 
-                        $value = floor( $amount * $value / 100 );
+                        $value = floor( $amount * $setup['value_portion'] / 100 );
                     
                     endif;
 
