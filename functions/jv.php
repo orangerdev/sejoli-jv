@@ -130,7 +130,7 @@ function sejoli_jv_get_earning_data( array $args, $table = array()) {
 
     $response = SejoliJV\Model\JV::reset()
                     ->set_filter_from_array($args)
-                    ->setProductId($args['product_id'])
+                    // ->setProductId($args['product_id'])
                     ->get_all_earning($start, $end)
                     ->respond();
 
@@ -168,14 +168,14 @@ function sejoli_jv_get_single_user_data( int $user_id, array $args, $table = arr
 
         $query = SejoliJV\Model\JV::reset()
                         ->set_filter_from_array($args)
-                        ->setProductId($args['product_id'])
+                        // ->setProductId($args['product_id'])
                         ->set_user_id($args['user_id']);
 
     else:
 
         $query = SejoliJV\Model\JV::reset()
                         ->set_filter_from_array($args)
-                        ->setProductId($args['product_id'])
+                        // ->setProductId($args['product_id'])
                         ->set_user_id($user_id);
 
     endif;
