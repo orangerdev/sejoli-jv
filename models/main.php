@@ -238,25 +238,35 @@ Class Model
      */
     static protected function set_length_query($query) {
 
+        global $wpdb;
+
+        $offset = 0;
+        $length = -1;
+
         if ( 0 < self::$filter['start'] ) :
-            $start = intval( self::$filter['start'] );
-            $query->offset( $start );
+            $offset = intval( self::$filter['start'] );
         endif;
 
         if ( 0 < self::$filter['length']) :
             $length = intval( self::$filter['length'] );
-            $query->limit( $length );
         endif;
 
         if(!is_null(self::$filter['order']) && is_array(self::$filter['order'])) :
+            $order_clauses = [];
             foreach(self::$filter['order'] as $column => $sort) :
-                $query->orderBy($column, $sort);
+                $order_clauses[] = "{$column} {$sort}";
             endforeach;
+            $query .= ' ORDER BY ' . implode(', ', $order_clauses);
         else :
-            $query->orderBy( 'ID', 'desc' );
+            $query .= ' ORDER BY ID DESC';
         endif;
 
+        if ($length > -1) {
+            $query .= $wpdb->prepare(" LIMIT %d OFFSET %d", $length, $offset);
+        }
+
         return $query;
+
     }
 
     /**
@@ -264,47 +274,38 @@ Class Model
      */
     static protected function set_filter_query($query)
     {
-        if ( !is_null( self::$filter['search'] ) && is_array( self::$filter['search'] ) ) :
-
-            foreach ( self::$filter['search'] as $key => $value ) :
-
-                if( 'product_id' === $value['name'] ) :
+        if (!is_null(self::$filter['search']) && is_array(self::$filter['search'])) :
+            foreach (self::$filter['search'] as $key => $value) :
+                if ('product_id' === $value['name']) :
                     $value['name'] = 'JV.product_id';
-                elseif( 'created_at' === $value['name'] ) :
+                elseif ('created_at' === $value['name']) :
                     $value['name'] = 'JV.created_at';
-                elseif( 'type' === $value['name'] ) :
+                elseif ('type' === $value['name']) :
                     $value['name'] = 'JV.type';
-                elseif( 'status' === $value['name'] ) :
+                elseif ('status' === $value['name']) :
                     $value['name'] = 'data_order.status';
                 endif;
 
-                if ( !empty( $value['val'] ) ) :
-
-                    if(is_array($value['val'])) :
-
-                        if(isset($value['compare']) && 'NOT IN' === $value['compare'] ) :
-                            $query->whereNotIn($value['name'], $value['val']);
+                if (!empty($value['val'])) :
+                    if (is_array($value['val'])) :
+                        if (isset($value['compare']) && 'NOT IN' === $value['compare']) :
+                            $in_values = implode(',', array_map('intval', $value['val']));
+                            $query .= " AND {$value['name']} NOT IN ($in_values)";
                         else :
-                            $query->whereIn( $value['name'],$value['val'] );
+                            $in_values = implode(',', array_map('intval', $value['val']));
+                            $query .= " AND {$value['name']} IN ($in_values)";
                         endif;
-
-                    elseif(isset($value['compare']) && !is_null($value['compare'])) :
-
-                        if('NOT IN' === $value['compare'] ) :
-                            error_log(print_r($value, true));
-                            $query->whereNotIn($value['name'], $value['val']);
+                    elseif (isset($value['compare']) && !is_null($value['compare'])) :
+                        if ('NOT IN' === $value['compare']) :
+                            $query .= " AND {$value['name']} NOT IN ('" . implode("','", $value['val']) . "')";
                         else :
-                            $query->where( $value['name'], $value['compare'], $value['val']);
+                            $query .= " AND {$value['name']} {$value['compare']} '{$value['val']}'";
                         endif;
-
                     else :
-
-                        $query->where( $value['name'],$value['val'] );
-
+                        $query .= " AND {$value['name']} = '{$value['val']}'";
                     endif;
-
-                elseif( false === boolval($value['val']) ) :
-                    $query->where( $value['name'],$value['val'] );
+                elseif (false === boolval($value['val'])) :
+                    $query .= " AND {$value['name']} = '{$value['val']}'";
                 endif;
             endforeach;
         endif;
