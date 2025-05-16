@@ -1,8 +1,6 @@
 <?php
 namespace SejoliJV\Model;
 
-use Illuminate\Database\Capsule\Manager as Capsule;
-
 /**
  * @since   1.5.4
  * @var [type]
@@ -17,6 +15,7 @@ Class JV extends \SejoliJV\Model
     static protected $expend_id      = NULL;
     static protected $paid_status    = 0;
     static protected $paid_time      = '0000-00-00 00:00:00';
+    // public static $product_id;
 
     /**
      * Set jv value ID
@@ -94,6 +93,11 @@ Class JV extends \SejoliJV\Model
      */
     static public function set_expend($expend_id) {
         self::$expend_id = absint( $expend_id );
+        return new static;
+    }
+
+    public static function setProductId($productId){
+        self::$product_id = absint($productId);
         return new static;
     }
 
@@ -178,30 +182,40 @@ Class JV extends \SejoliJV\Model
     static function get() {
         global $wpdb;
 
-        parent::$table = self::$table;
+        $table_name = $wpdb->prefix . self::$table;
 
-        $query        = Capsule::table( Capsule::raw( self::table() . ' AS JV' ) )
-                            ->select( Capsule::raw('JV.*, user.display_name AS affiliate_name, product.post_title AS product_name') )
-                            ->join( $wpdb->posts . ' AS product', 'product.ID', '=', 'jv value.product_id')
-                            ->join( $wpdb->users . ' AS user', 'user.ID', '=', 'jv value.user_id')
-                            ->where('JV.deleted_at', '=', '0000-00-00 00:00:00');
+        $query = "SELECT JV.*, user.display_name AS affiliate_name, product.post_title AS product_name
+                  FROM {$wpdb->prefix}your_table_name AS JV
+                  LEFT JOIN {$wpdb->posts} AS product ON product.ID = JV.product_id
+                  LEFT JOIN {$wpdb->users} AS user ON user.ID = JV.user_id
+                  WHERE JV.deleted_at = %s";
 
-        $query        = self::set_filter_query( $query );
-        $recordsTotal = $query->count();
-        $query        = self::set_length_query($query);
-        $jv_values  = $query->get()->toArray();
+        $query = $wpdb->prepare($query, '0000-00-00 00:00:00');
 
-        if ( $jv_values ) :
-            self::set_respond('valid',          true);
-            self::set_respond('jv_values',      $jv_values);
-            self::set_respond('recordsTotal',   $recordsTotal);
-            self::set_respond('recordsFiltered',$recordsTotal);
-        else:
-            self::set_respond('valid',          false);
-            self::set_respond('jv_values',      []);
-            self::set_respond('recordsTotal',   0);
+        $query = self::set_filter_query($query);
+
+        $count_query = "SELECT COUNT(*) FROM {$table_name} AS JV
+                        LEFT JOIN {$wpdb->posts} AS product ON product.ID = JV.product_id
+                        LEFT JOIN {$wpdb->users} AS user ON user.ID = JV.user_id
+                        WHERE JV.deleted_at = %s";
+        $count_query = $wpdb->prepare($count_query, '0000-00-00 00:00:00');
+        $recordsTotal = $wpdb->get_var($count_query);
+
+        $query = self::set_length_query($query);
+
+        $jv_values = $wpdb->get_results($query, ARRAY_A);
+
+        if ($jv_values) {
+            self::set_respond('valid', true);
+            self::set_respond('jv_values', $jv_values);
+            self::set_respond('recordsTotal', $recordsTotal);
+            self::set_respond('recordsFiltered', $recordsTotal);
+        } else {
+            self::set_respond('valid', false);
+            self::set_respond('jv_values', []);
+            self::set_respond('recordsTotal', 0);
             self::set_respond('recordsFiltered', 0);
-        endif;
+        }
 
         return new static;
     }
@@ -211,13 +225,19 @@ Class JV extends \SejoliJV\Model
      * @since   1.5.4
      */
     static function first() {
-        parent::$table = self::$table;
+        global $wpdb;
 
-        $data = Capsule::table( Capsule::raw( self::table() . ' AS JV' ) )
-                    ->whereIn('JV.ID', self::$ids)
-                    ->first();
+        $table_name = $wpdb->prefix . self::$table;
 
-        if( $data ) :
+        $query = "SELECT JV.*
+                  FROM {$table_name} AS JV
+                  WHERE JV.ID IN (" . implode(',', array_fill(0, count(self::$ids), '%d')) . ")";
+
+        $query = $wpdb->prepare($query, ...self::$ids);
+
+        $data = $wpdb->get_row($query, ARRAY_A);
+
+        if ($data) :
             self::set_valid(true);
             self::set_respond('jv_value', $data);
         else :
@@ -232,20 +252,27 @@ Class JV extends \SejoliJV\Model
      * @since   1.5.4
      */
     static function update_status() {
+        global $wpdb;
 
         self::set_action('update-status');
         self::validate();
 
-        if(true === self::$valid) :
+        if (true === self::$valid) :
+            $table_name = $wpdb->prefix . self::$table;
 
-            parent::$table = self::$table;
-
-            Capsule::table(self::table())
-                ->where('order_id', self::$order_id)
-                ->update([
+            // Prepare the update query
+            $wpdb->update(
+                "{$table_name}", 
+                [
                     'updated_at' => current_time('mysql'),
                     'status'     => self::$status
-                ]);
+                ],
+                [
+                    'order_id' => self::$order_id
+                ],
+                ['%s', '%s'], 
+                ['%d']
+            );
 
             self::set_valid(true);
             self::set_message(
@@ -265,15 +292,16 @@ Class JV extends \SejoliJV\Model
      * @since   1.0.0
      */
     static public function add_earning() {
+        global $wpdb;
 
         self::set_action('add-earning');
         self::validate();
 
-        if(true === self::$valid) :
+        if (true === self::$valid) :
+            $table_name = $wpdb->prefix . self::$table;
 
-            parent::$table = self::$table;
-
-            $earning = array(
+            // Prepare the insert data
+            $earning = [
                 'created_at' => current_time('mysql'),
                 'order_id'   => self::$order_id,
                 'product_id' => self::$product_id,
@@ -281,15 +309,17 @@ Class JV extends \SejoliJV\Model
                 'type'       => 'in',
                 'value'      => self::$value,
                 'status'     => self::$status,
-                'meta_data'  => serialize( self::$meta_data )
-            );
+                'meta_data'  => serialize(self::$meta_data)
+            ];
 
-            $earning['ID'] = Capsule::table(self::table())
-                                ->insertGetId($earning);
+            // Insert the earning record
+            $wpdb->insert("{$table_name}", $earning);
 
-            self::set_valid     (true);
-            self::set_respond   ('earning', $earning);
+            // Get the ID of the inserted row
+            $earning['ID'] = $wpdb->insert_id;
 
+            self::set_valid(true);
+            self::set_respond('earning', $earning);
         endif;
 
         return new static;
@@ -300,15 +330,16 @@ Class JV extends \SejoliJV\Model
      * @since   1.0.0
      */
     static public function add_expend() {
+        global $wpdb;
 
         self::set_action('add-expend');
         self::validate();
 
-        if(true === self::$valid) :
+        if (true === self::$valid) :
+            $table_name = $wpdb->prefix . self::$table;
 
-            parent::$table = self::$table;
-
-            $expend = array(
+            // Prepare the insert data
+            $expend = [
                 'created_at' => current_time('mysql'),
                 'expend_id'  => self::$expend_id,
                 'product_id' => self::$product_id,
@@ -316,15 +347,17 @@ Class JV extends \SejoliJV\Model
                 'type'       => 'out',
                 'value'      => self::$value,
                 'status'     => self::$status,
-                'meta_data'  => serialize( self::$meta_data )
-            );
+                'meta_data'  => serialize(self::$meta_data)
+            ];
 
-            $expend['ID'] = Capsule::table(self::table())
-                                ->insertGetId($expend);
+            // Insert the expend record
+            $wpdb->insert("{$table_name}", $expend);
 
-            self::set_valid     (true);
-            self::set_respond   ('expend', $expend);
+            // Get the ID of the inserted row
+            $expend['ID'] = $wpdb->insert_id;
 
+            self::set_valid(true);
+            self::set_respond('expend', $expend);
         endif;
 
         return new static;
@@ -335,30 +368,34 @@ Class JV extends \SejoliJV\Model
      * @since   1.0.0
      */
     static public function delete_expend() {
+        global $wpdb;
 
         self::set_action('delete-expend');
         self::validate();
 
-        if(true === self::$valid) :
+        if (true === self::$valid) :
+            $table_name = $wpdb->prefix . self::$table;
 
-            parent::$table = self::$table;
-
-            Capsule::table(self::table())
-                ->where('expend_id', self::$expend_id)
-                ->update([
+            $wpdb->update(
+                "{$table_name}",
+                [
                     'deleted_at' => current_time('mysql'),
                     'status'     => 'cancelled'
-                ]);
+                ],
+                [
+                    'expend_id' => self::$expend_id
+                ],
+                ['%s', '%s'],
+                ['%d']
+            );
 
             self::set_valid(true);
             self::set_message(
                 sprintf(
                     __('JV expend %s deleted successfully', 'sejoli-jv'),
-                    self::$expend_id,
-                    self::$status
+                    self::$expend_id
                 ),
                 'success');
-
         endif;
 
         return new static;
@@ -369,59 +406,57 @@ Class JV extends \SejoliJV\Model
      * @since   1.0.0
      */
     static public function get_all_earning($start, $end) {
-
         global $wpdb;
 
-        parent::$table = self::$table;
+        if (strtotime($end) && date('H:i:s', strtotime($end)) === '00:00:00') {
+            $end = date('Y-m-d 23:59:59', strtotime($end));
+        }
 
-        $query  = Capsule::table( Capsule::raw( self::table() . ' AS JV' ))
-                    ->select(
-                        'JV.user_id',
-                        'user.display_name',
-                        'user.user_email',
-                        Capsule::raw(
-                            'SUM(CASE WHEN type = "in" THEN value ELSE 0 END) AS earning_value'
-                        ),
-                        Capsule::raw(
-                            'SUM(CASE WHEN type = "out" THEN value ELSE 0 END) AS expenditure_value'
-                        ),
-                        Capsule::raw('SUM(CASE WHEN type = "in" AND status = "added" AND paid_status = 0 THEN JV.value ELSE 0 END) AS unpaid_commission '),
-                        Capsule::raw('SUM(CASE WHEN type = "in" AND status = "added" AND paid_status = 1 THEN JV.value ELSE 0 END) AS paid_commission '),
-                        Capsule::raw(
-                            'SUM(
-                                CASE
-                                    WHEN type = "in" THEN value
-                                    ELSE -value
-                                END
-                             ) AS total_value'
-                        )
-                    )
-                    ->join(
-                        $wpdb->users . ' AS user', 'user.ID', '=', 'JV.user_id'
-                    )
-                    ->where('status', 'added')
-                    ->where('JV.deleted_at', '=', '0000-00-00 00:00:00')
-                    ->where(function ($query) use ($start, $end) {
-                        $query->whereBetween('JV.updated_at', [$start, $end])
-                            ->orWhere('JV.updated_at', '0000-00-00 00:00:00');
-                    })
-                    ->orderBy('total_value', 'DESC')
-                    ->groupBy('user_id');
+        $table_name = $wpdb->prefix . self::$table;
 
-        $query  = self::set_filter_query( $query );
+        $product_id_condition = '';
+        if (!empty(self::$product_id)) {
+            $product_id_condition = "AND JV.product_id = %d";
+        }
 
-        $result = $query->get();
+        $query = "
+            SELECT 
+                JV.user_id,
+                user.display_name,
+                user.user_email,
+                SUM(CASE WHEN type = 'in' THEN value ELSE 0 END) AS earning_value,
+                SUM(CASE WHEN type = 'out' THEN value ELSE 0 END) AS expenditure_value,
+                SUM(CASE WHEN type = 'in' AND status = 'added' AND paid_status = 0 THEN JV.value ELSE 0 END) AS unpaid_commission,
+                SUM(CASE WHEN type = 'in' AND status = 'added' AND paid_status = 1 THEN JV.value ELSE 0 END) AS paid_commission,
+                SUM(CASE WHEN type = 'in' THEN value ELSE -value END) AS total_value
+            FROM {$table_name} AS JV
+            JOIN {$wpdb->users} AS user ON user.ID = JV.user_id
+            WHERE JV.status = 'added'
+            AND JV.deleted_at = '0000-00-00 00:00:00'
+            AND (
+                JV.updated_at BETWEEN %s AND %s
+                OR JV.updated_at = '0000-00-00 00:00:00'
+            )
+            $product_id_condition
+            GROUP BY JV.user_id
+            ORDER BY total_value DESC
+        ";
 
-        if($result) :
+        // Prepare and execute the query, passing the product_id if provided
+        if (!empty(self::$product_id)) {
+            $query = $wpdb->prepare($query, $start, $end, self::$product_id);
+        } else {
+            $query = $wpdb->prepare($query, $start, $end);
+        }
 
+        $result = $wpdb->get_results($query);
+
+        if ($result) :
             self::set_valid(true);
             self::set_respond('jv', $result);
-
         else :
-
             self::set_valid(false);
-            self::set_message( __('No JV data', 'sejoli-jv'));
-
+            self::set_message(__('No JV data', 'sejoli-jv'));
         endif;
 
         return new static;
@@ -432,35 +467,49 @@ Class JV extends \SejoliJV\Model
      * @since   1.0.0
      */
     static public function get_single_user($start, $end) {
-
         global $wpdb;
 
-        parent::$table = self::$table;
+        if (strtotime($end) && date('H:i:s', strtotime($end)) === '00:00:00') {
+            $end = date('Y-m-d 23:59:59', strtotime($end));
+        }
 
-        $query  = Capsule::table( Capsule::raw( self::table() . ' AS JV ') )
-                    ->where('status', 'added')
-                    ->where('user_id', self::$user_id)
-                    ->where('JV.deleted_at', '=', '0000-00-00 00:00:00')
-                    ->where(function ($query) use ($start, $end) {
-                        $query->whereBetween('JV.updated_at', [$start, $end])
-                            ->orWhere('JV.updated_at', '0000-00-00 00:00:00');
-                    });
+        $table_name = $wpdb->prefix . self::$table;
 
-        $query  = self::set_filter_query( $query );
-        $query  = self::set_length_query( $query );
+        $product_id_condition = '';
+        $prepare_values = array(self::$user_id, $start, $end);
 
-        $result = $query->get();
+        if (!empty(self::$product_id)) {
+            $product_id_condition = "AND JV.product_id = %d";
+            $prepare_values[] = self::$product_id;
+        }
 
-        if($result) :
+        $query = "
+            SELECT * 
+            FROM {$table_name} AS JV
+            WHERE JV.status = 'added'
+            AND JV.user_id = %d
+            AND JV.deleted_at = '0000-00-00 00:00:00'
+            AND (
+                JV.updated_at BETWEEN %s AND %s
+                OR JV.updated_at = '0000-00-00 00:00:00'
+            )
+            $product_id_condition
+        ";
 
+        $query = $wpdb->prepare($query, ...$prepare_values);
+
+        // Prepare and execute the query
+        // $query = $wpdb->prepare($query, self::$user_id, $start, $end);
+        $result = $wpdb->get_results($query);
+
+        error_log(print_r($query, true));
+
+        if ($result) :
             self::set_valid(true);
             self::set_respond('jv', $result);
-
         else :
-
             self::set_valid(false);
-            self::set_message( __('No JV data', 'sejoli-jv'));
-
+            self::set_message(__('No JV data', 'sejoli-jv'));
         endif;
 
         return new static;
@@ -471,37 +520,47 @@ Class JV extends \SejoliJV\Model
      * @since   1.0.0
      */
     static public function get_orders() {
-
         global $wpdb;
 
-        parent::$table = self::$table;
+        $table_name = $wpdb->prefix . self::$table;
+        
+        $query = "
+            SELECT
+                data_order.*, 
+                user.display_name AS user_name, 
+                user.user_email AS user_email, 
+                product.post_title AS product_name, 
+                coupon.code AS coupon_code, 
+                affiliate.display_name AS affiliate_name, 
+                JV.value AS earning
+            FROM {$wpdb->prefix}sejolisa_orders AS data_order
+            JOIN {$table_name} AS JV ON JV.order_id = data_order.ID
+            JOIN {$wpdb->users} AS user ON user.ID = data_order.user_id
+            JOIN {$wpdb->posts} AS product ON product.ID = data_order.product_id
+            LEFT JOIN {$wpdb->prefix}sejolisa_coupons AS coupon ON coupon.ID = data_order.coupon_id
+            LEFT JOIN {$wpdb->users} AS affiliate ON affiliate.ID = data_order.affiliate_id
+            WHERE JV.user_id = %d
+            AND JV.deleted_at = '0000-00-00 00:00:00'
+        ";
 
-        $query        = Capsule::table( Capsule::raw( self::table() . ' AS JV ') )
-                        ->select(
-                            Capsule::raw('data_order.*, user.display_name AS user_name, user.user_email AS user_email , product.post_title AS product_name, coupon.code AS coupon_code, affiliate.display_name AS affiliate_name, JV.value AS earning')
-                        )
-                        ->join( Capsule::raw( $wpdb->prefix . 'sejolisa_orders AS data_order'), 'data_order.ID', '=', 'JV.order_id')
-                        ->join( Capsule::raw( $wpdb->users . ' AS user '), 'user.ID', '=', 'data_order.user_id')
-                        ->join( Capsule::raw( $wpdb->posts . ' AS product '), 'product.ID', '=', 'data_order.product_id')
-                        ->leftJoin( Capsule::raw( $wpdb->prefix . 'sejolisa_coupons AS coupon'), 'coupon.ID', '=', 'data_order.coupon_id')
-                        ->leftJoin( Capsule::raw( $wpdb->users . ' AS affiliate'), 'affiliate.ID', '=', 'data_order.affiliate_id')
-                        ->where('JV.user_id', self::$user_id)
-                        ->where( 'JV.deleted_at', '=', '0000-00-00 00:00:00');
+        // Applying filters
+        $query = self::set_filter_query($query);
 
-        $query        = self::set_filter_query( $query );
+        $query = $wpdb->prepare($query, self::$user_id);
 
-        $recordsTotal = $query->count();
+        $recordsTotal = $wpdb->get_var(str_replace('SELECT data_order.*', 'SELECT COUNT(*)', $query));
 
-        $query        = self::set_length_query($query);
+        $query = self::set_length_query($query);
 
-        $orders       = $query->get()->toArray();
+        // Get the filtered results
+        $orders = $wpdb->get_results($query);
 
-        if ( $orders ) :
-            self::set_respond('valid',true);
-            self::set_respond('orders',$orders);
-            self::set_respond('recordsTotal',$recordsTotal);
-            self::set_respond('recordsFiltered',$recordsTotal);
-        else:
+        if ($orders) :
+            self::set_respond('valid', true);
+            self::set_respond('orders', $orders);
+            self::set_respond('recordsTotal', $recordsTotal);
+            self::set_respond('recordsFiltered', $recordsTotal);
+        else :
             self::set_respond('valid', false);
             self::set_respond('orders', []);
             self::set_respond('recordsTotal', 0);
@@ -517,29 +576,29 @@ Class JV extends \SejoliJV\Model
      * @since   1.5.2   Add added status to jv profit that has been paid
      */
     static public function update_single_jv_profit_paid_status() {
-
         global $wpdb;
 
-        self::set_action( 'update-single-jv-profit' );
+        self::set_action('update-single-jv-profit');
         self::validate();
 
-        if( true === self::$valid ) :
+        if (true === self::$valid) :
 
-            parent::$table = self::$table;
+            $table_name = $wpdb->prefix . self::$table;
 
-            $query = Capsule::table( self::table() )
-                        ->where('user_id', self::$user_id)
-                        ->where('updated_at', '<=', self::$paid_time)
-                        ->where('type', 'in')
-                        ->where('status', 'added');
+            $query = "
+                UPDATE {$table_name}
+                SET paid_status = %d
+                WHERE user_id = %d
+                AND updated_at <= %s
+                AND type = 'in'
+                AND status = 'added'
+            ";
 
-            $query = self::set_filter_query( $query );
+            // Prepare and execute the update query
+            $query = $wpdb->prepare($query, self::$paid_status, self::$user_id, self::$paid_time);
+            $result = $wpdb->query($query);
 
-            $result = $query->update(array(
-                        'paid_status' => self::$paid_status
-                    ));
-
-            if( $result ) :
+            if ($result) :
                 self::set_valid(true);
             else :
                 self::set_valid(false);
@@ -548,7 +607,6 @@ Class JV extends \SejoliJV\Model
         endif;
 
         return new static;
-    
     }
 
 }

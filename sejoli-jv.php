@@ -16,7 +16,7 @@
  * Plugin Name:       Sejoli - Joint Venture
  * Plugin URI:        https://sejoli.co.id
  * Description:       Implements JV feature to Sejoli Premium Membership Plugin
- * Version:           1.2.2
+ * Version:           1.2.3
  * Author:            Sejoli
  * Author URI:        https://sejoli.co.id
  * License:           GPL-2.0+
@@ -35,9 +35,16 @@ if ( ! defined( 'WPINC' ) ) {
  * Start at version 1.0.0 and use SemVer - https://semver.org
  * Rename this for your plugin and update it as you release new versions.
  */
-define( 'SEJOLI_JV_VERSION', 	'1.2.2' );
+define( 'SEJOLI_JV_VERSION', 	'1.2.3' );
 define( 'SEJOLI_JV_DIR', 		plugin_dir_path( __FILE__ ) );
 define( 'SEJOLI_JV_URL', 		plugin_dir_url( __FILE__ ) );
+
+set_error_handler(function($errno, $errstr, $errfile, $errline) {
+    if (strpos($errstr, '_load_textdomain_just_in_time') !== false) {
+        return true;
+    }
+    return false;
+});
 
 add_action('muplugins_loaded', 'sejoli_jv_check_sejoli');
 

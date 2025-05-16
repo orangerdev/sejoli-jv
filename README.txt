@@ -26,6 +26,11 @@ e.g.
 
 == Changelog ==
 
+= 1.2.3 =
+15 Maret 2025
+* support php 8.3
+* fix performance query
+
 = 1.2.2 =
 17 September 2024
 * fix bug input data credit expenditur
